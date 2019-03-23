@@ -1,0 +1,31 @@
+{
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "eject": "expo eject",
+    "start-max": "node --max-old-space-size=2048 node_modules/react-native/local-cli/cli.js start"
+  },
+  "dependencies": {
+    "@zaguini/react-native-tree-view": "^1.0.3",
+    "expo": "^31.0.2",
+    "increase-memory-limit": "^1.0.6",
+    "native-base": "^2.8.1",
+    "react": "16.5.0",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.0.tar.gz",
+    "react-native-chart-kit": "^1.2.1",
+    "react-native-dashboard": "0.0.3",
+    "react-native-infinite-scroll": "^1.0.6",
+    "react-native-js-stepper": "^0.2.1",
+    "react-native-modal": "^7.0.2",
+    "react-native-snap-carousel": "^3.7.5",
+    "react-native-tags": "^2.0.0",
+    "react-native-treeview": "^1.0.0",
+    "react-navigation": "^3.0.7"
+  },
+  "devDependencies": {
+    "babel-preset-expo": "^5.0.0"
+  },
+  "private": true
+}
