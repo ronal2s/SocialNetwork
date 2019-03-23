@@ -10,6 +10,7 @@
   "dependencies": {
     "@zaguini/react-native-tree-view": "^1.0.3",
     "expo": "^31.0.2",
+    "firebase": "^5.9.1",
     "increase-memory-limit": "^1.0.6",
     "native-base": "^2.8.1",
     "react": "16.5.0",

@@ -1,9 +1,14 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll } from 'react-native'
+import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage } from 'react-native'
 import { Drawer, Content, Container, Spinner, Text, Button } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import { Camera, Permissions, FileSystem } from 'expo';
+import app from "firebase/app"
+import "firebase/auth"
+import "firebase/database"
+import "firebase/storage"
+import { config } from "../const"
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
@@ -63,14 +68,14 @@ const MainCamera = (props) => {
         alert("Para usar la cámara tiene que debe darnos acceso");
         GetCameraAccess();
         return <Text />;
-    }  else if (isCameraOpen) {
+    } else if (isCameraOpen) {
         return (
             <View style={{ flex: 1 }}>
                 <Camera
                     // ref={(ref) => { this.camera = ref }}
                     ratio="16:9"
                     ref={cameraRef}
-                    style={{ flex: 1 }} type={type}>                    
+                    style={{ flex: 1 }} type={type}>
                 </Camera>
             </View>
         )
@@ -82,7 +87,7 @@ const MainCamera = (props) => {
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
-        screen: "Inicio",
+        screen: "login",
         loading: false,
         open_modal: false,
         showSearcher: false,
@@ -98,7 +103,38 @@ class Main extends Component {
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
         const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
+
+
+
+        app.initializeApp(config);
+        this.auth = app.auth()
+
+        
+        
+        this.OnLogin("ronal2w@gmail.com", "hola123");        
+        
+        // this.auth.signInWithCustomToken()
+
     }
+
+
+    OnLogin =(email, password) =>
+    {
+        
+        this.auth.signInWithEmailAndPassword(email, password)
+        .then(res => {            
+            //Datos del usuario:
+            console.log(res.user.providerData[0]);
+                        
+            AsyncStorage.setItem("uid", res.user.uid);
+            alert("Usuario validado");
+        })
+        .catch(err => {
+            alert("Usuarios y/o clave incorrecto");
+            console.log(err)
+        })
+    }
+
 
     handlePages = (page) => {
         let { showSearcher, screen } = this.state;
@@ -165,7 +201,7 @@ class Main extends Component {
         this.setState({ newPhotoURL: photo.base64, isCameraOpen, previewVisible: true });
     }
 
-    OnTakePicture = async () => {        
+    OnTakePicture = async () => {
         if (this.state.cameraRef) {
             this.state.cameraRef.current.takePictureAsync({ onPictureSaved: this.OnPictureSaved, base64: true });
         }
@@ -178,9 +214,8 @@ class Main extends Component {
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted', isCameraOpen: status === 'granted' });
     }
 
-    OnCloseModal = async () =>
-    {
-        this.setState({previewVisible: false})
+    OnCloseModal = async () => {
+        this.setState({ previewVisible: false })
     }
 
 
@@ -192,7 +227,8 @@ class Main extends Component {
 
     render() {
         const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL } = this.state;
-        const { navigation } = this.props;
+        const { navigation, auth } = this.props;
+        console.log("Auth es: ", auth)
         if (screen == "login") {
             return <Login openRegister={() => navigation.navigate("Register")} handlePages={this.handlePages} />
         }
