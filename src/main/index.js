@@ -11,7 +11,7 @@ import Employees from '../routes/employees'
 import Register from '../routes/register'
 import Mynunus from '../routes/init'
 import Login from '../routes/login'
-
+import PreviewPhoto from '../components/preview'
 import styles from '../styles'
 
 const Loading = (props) => {
@@ -68,6 +68,7 @@ const MainCamera = (props) => {
             <View style={{ flex: 1 }}>
                 <Camera
                     // ref={(ref) => { this.camera = ref }}
+                    ratio="16:9"
                     ref={cameraRef}
                     style={{ flex: 1 }} type={type}>                    
                 </Camera>
@@ -90,7 +91,7 @@ class Main extends Component {
         isCameraOpen: false,
         newPhotoURL: null,
         cameraRef: React.createRef(),
-        count: 0
+        previewVisible: false
     };
 
     async componentDidMount() {
@@ -144,6 +145,7 @@ class Main extends Component {
 
     OnPictureSaved = async photo => {
         const urlPhoto = `${FileSystem.documentDirectory}photos/${Date.now()}.jpg`
+        console.log(Object.keys(photo))
         let { hasCameraRollPermission, isCameraOpen } = this.state;
         // await FileSystem.moveAsync({
         //     from: photo.uri,
@@ -160,12 +162,12 @@ class Main extends Component {
             isCameraOpen = false;
 
         }
-        this.setState({ newPhotoURL: photo.uri, isCameraOpen });
+        this.setState({ newPhotoURL: photo.base64, isCameraOpen, previewVisible: true });
     }
 
     OnTakePicture = async () => {        
         if (this.state.cameraRef) {
-            this.state.cameraRef.current.takePictureAsync({ onPictureSaved: this.OnPictureSaved });
+            this.state.cameraRef.current.takePictureAsync({ onPictureSaved: this.OnPictureSaved, base64: true });
         }
     };
 
@@ -176,12 +178,20 @@ class Main extends Component {
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted', isCameraOpen: status === 'granted' });
     }
 
+    OnCloseModal = async () =>
+    {
+        this.setState({previewVisible: false})
+    }
+
 
     static navigationOptions = {
         header: null
     }
+
+    //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
+
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL } = this.state;
         const { navigation } = this.props;
         if (screen == "login") {
             return <Login openRegister={() => navigation.navigate("Register")} handlePages={this.handlePages} />
@@ -198,6 +208,7 @@ class Main extends Component {
                     <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} handleModalFilter={this.handleModalFilter} />
                     <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
                     <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
+                    <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} OnCloseModal={this.OnCloseModal} />
                 </Container>
             </Drawer>
             // {/* </View> */}
