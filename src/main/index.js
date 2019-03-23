@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, StatusBar, TouchableOpacity } from 'react-native'
-import { Drawer, Content, Container, Spinner, Text } from 'native-base'
+import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll } from 'react-native'
+import { Drawer, Content, Container, Spinner, Text, Button } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
-import { Camera, Permissions } from 'expo';
+import { Camera, Permissions, FileSystem } from 'expo';
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
@@ -54,15 +54,23 @@ const MHeader = (props) => {
 }
 
 const MainCamera = (props) => {
-    const { hasCameraPermission, flipCamera, isCameraOpen, type } = props;
-    if (hasCameraPermission === null) {
-        return <View />;
-    } else if (hasCameraPermission === false) {
-        return <Text>No access to camera</Text>;
-    } else if (isCameraOpen) {
+    const { hasCameraPermission, GetCameraAccess, cameraRef, isCameraOpen, type } = props;
+    if (hasCameraPermission === null && isCameraOpen) {
+        alert("Para usar la cámara tiene que debe darnos acceso");
+        GetCameraAccess();
+        return <Text />;
+    } else if (hasCameraPermission === false && isCameraOpen) {
+        alert("Para usar la cámara tiene que debe darnos acceso");
+        GetCameraAccess();
+        return <Text />;
+    }  else if (isCameraOpen) {
         return (
             <View style={{ flex: 1 }}>
-                <Camera style={{ flex: 1 }} type={type}/>
+                <Camera
+                    // ref={(ref) => { this.camera = ref }}
+                    ref={cameraRef}
+                    style={{ flex: 1 }} type={type}>                    
+                </Camera>
             </View>
         )
     } else {
@@ -79,12 +87,16 @@ class Main extends Component {
         showSearcher: false,
         hasCameraPermission: "",
         cameraType: Camera.Constants.Type.front,
-        isCameraOpen: false
+        isCameraOpen: false,
+        newPhotoURL: null,
+        cameraRef: React.createRef(),
+        count: 0
     };
 
     async componentDidMount() {
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
-        this.setState({ hasCameraPermission: status === 'granted' });
+        const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
     }
 
     handlePages = (page) => {
@@ -107,27 +119,61 @@ class Main extends Component {
         this.setState({ open_modal: !open_modal });
     }
 
-    OnCameraOpen = () => {
+    OnCameraOpen = (camera) => {
         let { isCameraOpen } = this.state;
-        if(!isCameraOpen)
-        {
+        if (!isCameraOpen) {
             isCameraOpen = true;
-        } else
-        {
+        } else {
             //Capturar foto
+            console.log("WEEEY")
+            this.OnTakePicture();
         }
-        this.setState({ isCameraOpen})
+        this.setState({ isCameraOpen })
     }
 
     flipCamera = () => {
         let { cameraType } = this.state;
-        cameraType = cameraType == Camera.Constants.Type.front? Camera.Constants.Type.back: Camera.Constants.Type.front
-        this.setState({cameraType})
+        cameraType = cameraType == Camera.Constants.Type.front ? Camera.Constants.Type.back : Camera.Constants.Type.front
+        this.setState({ cameraType })
     }
 
-    OnCloseCamera = () =>
-    {
-        this.setState({isCameraOpen: false})
+    OnCloseCamera = () => {
+        this.setState({ isCameraOpen: false })
+    }
+
+
+    OnPictureSaved = async photo => {
+        const urlPhoto = `${FileSystem.documentDirectory}photos/${Date.now()}.jpg`
+        let { hasCameraRollPermission, isCameraOpen } = this.state;
+        // await FileSystem.moveAsync({
+        //     from: photo.uri,
+        //     to: urlPhoto,
+        // });
+        if (hasCameraRollPermission !== 'granted') {
+            const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+            if (status === 'granted') {
+                CameraRoll.saveToCameraRoll(photo.uri, "photo");
+                isCameraOpen = false;
+            }
+        } else {
+            CameraRoll.saveToCameraRoll(photo.uri, "photo");
+            isCameraOpen = false;
+
+        }
+        this.setState({ newPhotoURL: photo.uri, isCameraOpen });
+    }
+
+    OnTakePicture = async () => {        
+        if (this.state.cameraRef) {
+            this.state.cameraRef.current.takePictureAsync({ onPictureSaved: this.OnPictureSaved });
+        }
+    };
+
+    GetCameraAccess = async () => {
+        this.setState({ isCameraOpen: false })
+        const { status } = await Permissions.askAsync(Permissions.CAMERA);
+        const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted', isCameraOpen: status === 'granted' });
     }
 
 
@@ -135,7 +181,7 @@ class Main extends Component {
         header: null
     }
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef } = this.state;
         const { navigation } = this.props;
         if (screen == "login") {
             return <Login openRegister={() => navigation.navigate("Register")} handlePages={this.handlePages} />
@@ -147,11 +193,11 @@ class Main extends Component {
                 <Container style={styles.main} >
                     <MHeader screen={screen} showSearcher={showSearcher} handleModalFilter={this.handleModalFilter} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />
-
-                    <MainCamera flipCamera={this.flipCamera} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
+                    {/* {this.MainCamera()} */}
+                    <MainCamera cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
                     <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} handleModalFilter={this.handleModalFilter} />
                     <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
-                    <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
+                    <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
                 </Container>
             </Drawer>
             // {/* </View> */}

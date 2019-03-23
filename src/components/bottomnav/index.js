@@ -3,11 +3,12 @@ import { Container, Header, Content, Footer, FooterTab, Button, Icon, Text } fro
 import styles from '../../styles'
 export default class FooterTabsIconTextExample extends Component {
   render() {
-      const {page, handlePages, OnCameraOpen, flipCamera, isCameraOpen, OnCloseCamera} = this.props;
+      const {page, handlePages, OnCameraOpen, OnTakePicture, camera, flipCamera, isCameraOpen, OnCloseCamera} = this.props;
       const styleOpt1 = page == "home"? styles.PageSelected:styles.PageNoSelected;      
       const styleOpt2 = page == "employees"? styles.PageSelected:styles.PageNoSelected;      
       const styleOpt3 = page == "camera"? styles.PageSelected:styles.PageNoSelected;      
-      const styleOpt4 = page == "navigate"? styles.PageSelected:styles.PageNoSelected;      
+      const styleOpt4 = page == "navigate"? styles.PageSelected:styles.PageNoSelected;    
+      console.log(this.props.camera)  
     return (
       
         <Footer  >
@@ -16,7 +17,8 @@ export default class FooterTabsIconTextExample extends Component {
               <Icon name="camera" type="MaterialCommunityIcons" style={styleOpt1}/>
               <Text style={styleOpt1}>Cerrar</Text>
             </Button>}
-            <Button vertical style={styleOpt1} onPress={OnCameraOpen} >
+            {/* <Button vertical style={styleOpt1} onPress={() => OnCameraOpen(camera) } > */}
+            <Button vertical style={styleOpt1} onPress={OnCameraOpen } >
               <Icon name="camera" type="MaterialCommunityIcons" style={styleOpt2}/>
               <Text style={styleOpt1}>Cámara</Text>
             </Button>
