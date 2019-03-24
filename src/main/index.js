@@ -149,18 +149,17 @@ class Main extends Component {
 
         app.initializeApp(config);
         this.auth = app.auth()
+        //RECORDAR BORRAR LA PARTE EN QUE ACTUALIZA EL USUARIO ACTUAL, DEJARLO PARA EL MENÚ DEL USUARIO O ALGO ASÍ
+        //PORQUE EL USUARIOA CTUAL QUE ACTUALIZA ES EL QUE YA ESTÁ LOGEADO EN LA APP, NO EL NUEVO QUE SE HIZO
 
-
-        // this.auth.app.database().ref("/USUARIOS/adjhjasdah").once("value")
-        // .then( res => console.log(res))
-        // .catch(err => console.log(err))
-        this.auth.onAuthStateChanged((user) => {
-            if(user)
-            {
-                console.log("USUARIO: ", user)
-            }
-        })
-        // this.OnLogin("ronal2ws@gmail.com", "hola123");        
+        
+        // this.auth.onAuthStateChanged((user) => {
+        //     if(user)
+        //     {
+        //         console.log("USUARIO: ", user)
+        //     }
+        // })
+        // this.OnLogin("ronal2ws@gmail.com", "hola1234");        
 
         // this.auth.signInWithCustomToken()
 
@@ -182,8 +181,9 @@ class Main extends Component {
 
         this.auth.signInWithEmailAndPassword(email, password)
             .then(res => {
+                console.log(res.user);
                 //Datos del usuario:
-                console.log(res.user.providerData[0]);
+                // console.log(res.user.providerData[0]);
 
                 AsyncStorage.setItem("uid", res.user.uid);
                 alert("Usuario validado");

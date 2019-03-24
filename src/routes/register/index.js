@@ -2,9 +2,10 @@ import React, { Component } from 'react'
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import { Input, Item, Form, Text, Content, Button, Spinner, Icon, ListItem, Thumbnail } from 'native-base'
 import { ImagePicker, Permissions } from "expo";
-
-import { user } from "../../const"
 import Stepper from 'react-native-js-stepper'
+
+import { user, verifyEmail } from "../../const"
+import TextField from "../../components/textfield"
 import IconBoy from '../../../assets/icons/barber.png'
 import IconWoman from '../../../assets/icons/hair-cut.png'
 import IconSalon from '../../../assets/icons/hair-salon.png'
@@ -54,41 +55,48 @@ const Page3 = () => {
     </View>
 }
 
-const Page4 = (props) => {
-    const { form, handleForm, navigation, OnRegister, PickerImage, fotoPrincipal, uploadingData, forceUpdate } = props;
-    return <Content style={styles.RegisterFormContent} >
-        <Form>
-            {/* <ListItem avatar  > */}
-            <TouchableOpacity onPress={PickerImage} >
-                <View style={{ justifyContent: "center", alignItems: "center" }}>
-                    <Thumbnail style={{ borderRadius: 100 }} source={fotoPrincipal} width={200} height={200} />
-                </View>
-            </TouchableOpacity>
-            {/* </ListItem> */}
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("correo", text)} placeholder="Correo" />
-            </Item>
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" />
-            </Item>
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input secureTextEntry onChangeText={(text) => handleForm("clave", text)} placeholder="Clave" />
-            </Item>
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input secureTextEntry onChangeText={(text) => handleForm("clave2", text)} placeholder="Confirmar clave" />
-            </Item>
+export class Page44 extends Component {
 
-            <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={OnRegister} >
-                {uploadingData ? <Spinner color="white" /> :
-                    <Text style={styles.textWhite}  >Registrarse</Text>
-                }
-            </Button>
-            <Button style={[styles.RegisterItemsSpacing, styles.buttonSecondary]} rounded bordered block onPress={() => navigation.goBack()} >
-                <Text style={styles.textDark} >Iniciar sesión</Text>
-            </Button>
-        </Form>
-    </Content>
+    NextInput = (name) =>
+    {
+        this.refs[name]._root.focus();
+    }
 
+    render() {
+        const { form, handleForm, navigation, OnRegister, PickerImage, fotoPrincipal, uploadingData, forceUpdate } = this.props;
+        return <Content style={styles.RegisterFormContent} >
+            <Form>
+                {/* <ListItem avatar  > */}
+                <TouchableOpacity onPress={PickerImage} >
+                    <View style={{ justifyContent: "center", alignItems: "center" }}>
+                        <Thumbnail style={{ borderRadius: 100 }} source={fotoPrincipal} width={200} height={200} />
+                    </View>
+                </TouchableOpacity>
+                {/* </ListItem> */}
+                <Item rounded style={styles.RegisterItemsForm} >
+                    <Input keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputUsuario")} onChangeText={(text) => handleForm("correo", text)} placeholder="Correo" autoCapitalize="none" />
+                </Item>
+                <Item rounded style={styles.RegisterItemsForm} >
+                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")}  onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" autoCapitalize="none" />
+                </Item>
+                <Item rounded style={styles.RegisterItemsForm} >
+                    <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("clave", text)} placeholder="Clave" autoCapitalize="none" />
+                </Item>
+                <Item rounded style={styles.RegisterItemsForm} >
+                    <Input ref="inputClave2" returnKeyType="next" onSubmitEditing={OnRegister} secureTextEntry onChangeText={(text) => handleForm("clave2", text)} placeholder="Confirmar clave" autoCapitalize="none" />
+                </Item>
+
+                <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={OnRegister} >
+                    {uploadingData ? <Spinner color="white" /> :
+                        <Text style={styles.textWhite}  >Registrarse</Text>
+                    }
+                </Button>
+                <Button style={[styles.RegisterItemsSpacing, styles.buttonSecondary]} rounded bordered block onPress={() => navigation.goBack()} >
+                    <Text style={styles.textDark} >Iniciar sesión</Text>
+                </Button>
+            </Form>
+        </Content>
+    }
 }
 
 class Register extends Component {
@@ -108,14 +116,14 @@ class Register extends Component {
         //VALIDANDO FORMULARIO GENERAL
         if ((form.usuario.length >= 6)) {
             //USAR FUNCION DE VALIDAR CORREO REAL
-            if (!(form.correo == "")) {
+            if (verifyEmail(form.correo)) {
                 if (form.clave.length >= 6) {
                     if (form.clave == form.clave2) {
                         //Todo validado
                         //CREANDO BLOB
                         let blob = null;
-                        delete form.clave;
-                        delete form.clave2;
+                        const currentPassword = form.clave;
+
                         //VERIFICANDO SI HAY FOTO 
                         if (Object.keys(form.fotoPrincipal).length > 0) {
                             blob = await new Promise((resolve, reject) => {
@@ -155,32 +163,13 @@ class Register extends Component {
                                                 .then(url => {
                                                     form.fotoPrincipal = url;
                                                     //SUBIR DATA
+                                                    delete form.clave;
+                                                    delete form.clave2;
                                                     refUsuario.child(form.usuario).set(form, (err) => {
                                                         console.log(err)
                                                         if (!err) {
                                                             alert("Usuario registrado");
-                                                            //Actualizar el currentUser
-                                                            auth.onAuthStateChanged((user) => {
-                                                                if (user) {
-                                                                    console.log(user);
-                                                                    // alert("Sigues logeado wey");
-                                                                    auth.currentUser.updateProfile({
-                                                                        displayName: form.usuario,
-                                                                        photoURL: form.fotoPrincipal
-                                                                    })
-                                                                        .then(res => {
-                                                                            console.log("Usuario actualizado")
-                                                                            this.setState({ uploadingData: false });
-                                                                            this.props.navigation.goBack();
-                                                                        })
-                                                                        .catch(err => {
-                                                                            console.log("Error actualizando usuario")
-                                                                            this.setState({ uploadingData: false });
-                                                                            this.props.navigation.goBack();
-                                                                        })
-
-                                                                }
-                                                            })
+                                                            this.props.navigation.goBack();
                                                         } else {
                                                             alert("Ha ocurrido un error");
                                                             this.setState({ uploadingData: false });
@@ -189,29 +178,13 @@ class Register extends Component {
                                                 })
                                         } else {
                                             //SI NO HAY FOTO, SE SUBE SIN FOTO
+                                            delete form.clave;
+                                            delete form.clave2;
                                             refUsuario.child(form.usuario).set(form, (err) => {
                                                 if (!err) {
-                                                    auth.onAuthStateChanged((user) => {
-                                                        if (user) {
-                                                            console.log(user);
-                                                            // alert("Sigues logeado wey");
-                                                            auth.currentUser.updateProfile({
-                                                                displayName: form.usuario,
-                                                                photoURL: form.fotoPrincipal
-                                                            })
-                                                                .then(res => {
-                                                                    console.log("Usuario actualizado")
-                                                                    this.setState({ uploadingData: false });
-                                                                    this.props.navigation.goBack();
-                                                                })
-                                                                .catch(err => {
-                                                                    console.log("Error actualizando usuario")
-                                                                    this.setState({ uploadingData: false });
-                                                                    this.props.navigation.goBack();
-                                                                })
-
-                                                        }
-                                                    })
+                                                    //INICIAR SESIÓN CON EL NUEVO USUARIO
+                                                    alert("Usuario registrado");
+                                                    this.props.navigation.goBack();
                                                 } else {
                                                     alert("Ha ocurrido un error");
                                                     this.setState({ uploadingData: false });
@@ -303,7 +276,7 @@ class Register extends Component {
                 <Page2 />
                 <Page3 />
                 {/* <Page4  uploadingData={uploadingData} fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => OnRegister(form)} form={form} navigation={navigation} handleForm={this.handleForm} /> */}
-                <Page4 uploadingData={uploadingData} fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => this.OnRegister(form, auth)} form={form} navigation={navigation} handleForm={this.handleForm} />
+                <Page44 uploadingData={uploadingData} fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => this.OnRegister(form, auth)} form={form} navigation={navigation} handleForm={this.handleForm} />
             </Stepper>
         )
     }
