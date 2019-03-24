@@ -9,7 +9,7 @@ import _ from 'lodash';
 import "firebase/auth"
 import "firebase/database"
 import "firebase/storage"
-import { CONFIG, CURRENTUSER, GetBlob } from "../const"
+import { CONFIG, CURRENTUSER, POST, GetBlob } from "../const"
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
@@ -68,57 +68,6 @@ const MHeader = (props) => {
     return <Text />
 }
 
-const MainCamera = (props) => {
-    const { hasCameraPermission, GetCameraAccess, cameraRef, isCameraOpen, type, photos } = props;
-    if (hasCameraPermission === null && isCameraOpen) {
-        alert("Para usar la cámara tiene que debe darnos acceso");
-        GetCameraAccess();
-        return <Text />;
-    } else if (hasCameraPermission === false && isCameraOpen) {
-        alert("Para usar la cámara tiene que debe darnos acceso");
-        GetCameraAccess();
-        return <Text />;
-    } else if (isCameraOpen) {
-        console.log("IMAGEN", photos[0])
-        return (
-            <View style={{ flex: 1 }}>
-                <Camera
-                    // ref={(ref) => { this.camera = ref }}
-                    ratio="1:1"
-                    ref={cameraRef}
-                    style={{ flex: 0.5 }} type={type}>
-                </Camera>
-                <Container style={{ flex: 0.5, backgroundColor: "#282828" }}>
-                    <View  >
-                        <DeckSwiper dataSource={photos} renderItem={item =>
-                            <Card transparent >
-                                <CardItem style={styles.DarkColorBackground} >
-                                    <Left>
-                                        <Text style={styles.textWhite} >
-                                            Fotos del carrete
-                                        </Text>
-                                    </Left>
-                                    <Right>
-                                        <Text note>
-                                            {item.node.group_name}
-                                        </Text>
-                                    </Right>
-                                </CardItem>
-                                <CardItem cardBody button>
-                                    <Image source={item.node.image} style={{ width: "100%", height: 300, }} />
-                                </CardItem>
-                            </Card>
-                        } />
-                    </View>
-                </Container>
-
-            </View>
-        )
-    } else {
-        return <Text />
-    }
-}
-
 
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
@@ -136,7 +85,8 @@ class Main extends Component {
         cameraRef: React.createRef(),
         previewVisible: false,
         photos: [],
-        currentUser: { ...CURRENTUSER }
+        currentUser: { ...CURRENTUSER },
+        post: {...POST}
     };
 
     async componentDidMount() {
@@ -147,7 +97,7 @@ class Main extends Component {
         this.auth = app.auth()
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
-        
+
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
@@ -162,18 +112,11 @@ class Main extends Component {
                 this.setState({ screen: "login", loadingUser: false })
             }
         })
-        this.GetPhotosCamera();
     }
 
 
 
-    GetPhotosCamera = async () => {
-        await CameraRoll.getPhotos({ first: 50 }).then(res => {
-            // console.log(res.edges)
-            this.setState({ photos: res.edges });
 
-        })
-    }
 
     OnChangeProfilePhoto = async () => {
         // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})        
@@ -186,31 +129,31 @@ class Main extends Component {
                     currentUser.fotoPrincipal = res;
                     //CREANDO BLOB 
                     GetBlob(currentUser.fotoPrincipal.uri)
-                    .then(async blob => {
-                        //SUBIR IMAGEN
-                        const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
-                        const refUsuario = this.auth.app.database().ref("/USUARIOS");
-                        const snapshot = await refFoto.put(blob);
-                        blob.close();
-                        snapshot.ref.getDownloadURL()
-                            .then(url => {
-                                currentUser.fotoPrincipal = url;
-                                //ACTUALIZAR DATA
-                                refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
-                                    console.log(err)
-                                    if (!err) {
-                                        this.setState({ currentUser, isUploadingPhoto: false })
-                                    } else {
-                                        alert("Ha ocurrido un error cambiando la imagen de perfil");
-                                        this.setState({ isUploadingPhoto: false });
-                                    }
+                        .then(async blob => {
+                            //SUBIR IMAGEN
+                            const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
+                            const refUsuario = this.auth.app.database().ref("/USUARIOS");
+                            const snapshot = await refFoto.put(blob);
+                            blob.close();
+                            snapshot.ref.getDownloadURL()
+                                .then(url => {
+                                    currentUser.fotoPrincipal = url;
+                                    //ACTUALIZAR DATA
+                                    refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
+                                        console.log(err)
+                                        if (!err) {
+                                            this.setState({ currentUser, isUploadingPhoto: false })
+                                        } else {
+                                            alert("Ha ocurrido un error cambiando la imagen de perfil");
+                                            this.setState({ isUploadingPhoto: false });
+                                        }
+                                    })
                                 })
-                            })                        
-                    })
-                    .catch(err => {
-                        alert("Ha ocurrido un error");
-                        console.log(err)
-                    })
+                        })
+                        .catch(err => {
+                            alert("Ha ocurrido un error");
+                            console.log(err)
+                        })
 
                 } else {
 
@@ -252,17 +195,16 @@ class Main extends Component {
             })
     }
 
-    OnLogout = () =>
-    {
+    OnLogout = () => {
         this.auth.signOut()
-        .then(res => {
-            console.log(res);
-            this.setState({screen: "login"});
-        })
-        .catch(err => {
-            console.log(err);
-            alert("Ha ocurrido un error");
-        })
+            .then(res => {
+                console.log(res);
+                this.setState({ screen: "login" });
+            })
+            .catch(err => {
+                console.log(err);
+                alert("Ha ocurrido un error");
+            })
     }
 
 
@@ -281,57 +223,6 @@ class Main extends Component {
         setTimeout(() => this.setState({ screen: page, loading: false }), 300);
     }
 
-
-    OnCameraOpen = (camera) => {
-        let { isCameraOpen } = this.state;
-        if (!isCameraOpen) {
-            isCameraOpen = true;
-        } else {
-            //Capturar foto
-            this.OnTakePicture();
-        }
-        this.setState({ isCameraOpen })
-    }
-
-    flipCamera = () => {
-        let { cameraType } = this.state;
-        cameraType = cameraType == Camera.Constants.Type.front ? Camera.Constants.Type.back : Camera.Constants.Type.front
-        this.setState({ cameraType })
-    }
-
-    OnCloseCamera = () => {
-        this.setState({ isCameraOpen: false })
-    }
-
-
-    OnPictureSaved = async photo => {
-        const urlPhoto = `${FileSystem.documentDirectory}photos/${Date.now()}.jpg`
-        // console.log(Object.keys(photo))
-        let { hasCameraRollPermission, isCameraOpen } = this.state;
-        // await FileSystem.moveAsync({
-        //     from: photo.uri,
-        //     to: urlPhoto,
-        // });
-        if (hasCameraRollPermission !== 'granted') {
-            const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-            if (status === 'granted') {
-                CameraRoll.saveToCameraRoll(photo.uri, "photo");
-                isCameraOpen = false;
-            }
-        } else {
-            CameraRoll.saveToCameraRoll(photo.uri, "photo");
-            isCameraOpen = false;
-
-        }
-        this.setState({ newPhotoURL: photo.base64, isCameraOpen, previewVisible: true });
-    }
-
-    OnTakePicture = async () => {
-        if (this.state.cameraRef) {
-            this.state.cameraRef.current.takePictureAsync({ onPictureSaved: this.OnPictureSaved, base64: true });
-        }
-    };
-
     GetCameraAccess = async () => {
         this.setState({ isCameraOpen: false })
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
@@ -343,6 +234,19 @@ class Main extends Component {
         this.setState({ previewVisible: false })
     }
 
+    OnCameraOpen = async () => {
+        // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})
+        await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], base64: true })
+            .then(res => {
+                // console.log(res);
+                if (!res.cancelled) {
+                    let { post } = this.state;
+                    post.photo = res;
+                    this.setState({ post, newPhotoURL: res, previewVisible: true })
+                }
+            })
+            .catch(err => console.log(err))
+    }
 
     setUser = (user) => {
         this.setState({ currentUser: user, screen: "Inicio" });
@@ -355,7 +259,7 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef,
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission,
             previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto } = this.state;
         const { navigation, auth } = this.props;
         // console.log("USUARIO ES: ", currentUser)
@@ -371,13 +275,12 @@ class Main extends Component {
                 content={<SideBar screen={screen} OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
                 <Container style={styles.main} >
                     <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
-                    <StatusBar barStyle="light-content" backgroundColor="#232323" />
-                    {/* {this.MainCamera()} */}
-                    <MainCamera photos={photos} cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
-                    <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} />
-                    <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
-                    <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
-                    <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} OnCloseModal={this.OnCloseModal} />
+                    <StatusBar barStyle="light-content" backgroundColor="#232323" />                    
+                    
+                    <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} />
+                    <Home loading={loading} screen={screen} handlePages={this.handlePages} />
+                    <BottomNav page={screen} OnCameraOpen={this.OnCameraOpen} />
+                    <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
                     {/* <Loading loading={true}/> */}
                 </Container>
             </Drawer>

@@ -37,22 +37,22 @@ const user = {
 
 }
 
-const post = {
-    usuario:"",
-    foto: "",
-    descripcion:"",
-    fecha:"",//Fecha completa, es decir + new Date()
-    likes: 
-    [
-        {usuario: ""}
-    ],
-    comentarios:
-    [
-        {
-            usuario: "",
-            mensaje:""
-        }
-    ]
+const POST = {
+    user:"",
+    photo: "",
+    description:"",
+    date:"",//Fecha completa, es decir + new Date()
+    // likes: 
+    // [
+    //     {usuario: ""}
+    // ],
+    // comments:
+    // [
+    //     {
+    //         user: "",
+    //         comment:""
+    //     }
+    // ]
 
 }
 
@@ -83,4 +83,4 @@ async function GetBlob(photo)
 }
 
 
-export { CONFIG, user, CURRENTUSER, verifyEmail, GetBlob }
+export { CONFIG, user, CURRENTUSER, POST, verifyEmail, GetBlob }
