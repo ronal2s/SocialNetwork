@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image, YellowBox } from 'react-native'
-import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right,  } from 'native-base'
+import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import { Camera, Permissions, FileSystem } from 'expo';
@@ -30,7 +30,7 @@ console.warn = message => {
 };
 const Loading = (props) => {
     const { loading } = props;
-    return <Modal style={[styles.modal, {backgroundColor: "white"}]} isVisible={loading}>
+    return <Modal style={[styles.modal, { backgroundColor: "white" }]} isVisible={loading}>
         <View style={{ flex: 1 }}>
             <Spinner color="#0086c3" />
         </View>
@@ -62,7 +62,7 @@ const Pages = (props) => {
 const MHeader = (props) => {
     const { showSearcher, screen } = props;
     if (screen != "login") {
-        return <Header showSearcher={showSearcher}/>
+        return <Header showSearcher={showSearcher} />
     }
     return <Text />
 }
@@ -157,9 +157,7 @@ class Main extends Component {
         this.auth.onAuthStateChanged((user) => {
             if(user)
             {
-                console.log(user);
-                // alert("Sigues logeado wey");
-
+                console.log("USUARIO: ", user)
             }
         })
         // this.OnLogin("ronal2ws@gmail.com", "hola123");        
@@ -169,7 +167,7 @@ class Main extends Component {
         this.GetPhotosCamera();
     }
 
-    
+
 
     GetPhotosCamera = async () => {
         await CameraRoll.getPhotos({ first: 50 }).then(res => {
@@ -211,7 +209,7 @@ class Main extends Component {
         }
         setTimeout(() => this.setState({ screen: page, loading: false }), 300);
     }
-    
+
 
     OnCameraOpen = (camera) => {
         let { isCameraOpen } = this.state;
@@ -298,7 +296,7 @@ class Main extends Component {
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />
                     {/* {this.MainCamera()} */}
                     <MainCamera photos={photos} cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
-                    <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading}/>
+                    <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} />
                     <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
                     <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
                     <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} OnCloseModal={this.OnCloseModal} />

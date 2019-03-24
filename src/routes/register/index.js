@@ -110,8 +110,7 @@ class Register extends Component {
             //USAR FUNCION DE VALIDAR CORREO REAL
             if (!(form.correo == "")) {
                 if (form.clave.length >= 6) {
-                    if(form.clave == form.clave2)
-                    {
+                    if (form.clave == form.clave2) {
                         //Todo validado
                         //CREANDO BLOB
                         let blob = null;
@@ -160,8 +159,28 @@ class Register extends Component {
                                                         console.log(err)
                                                         if (!err) {
                                                             alert("Usuario registrado");
-                                                            this.setState({ uploadingData: false });
-                                                            this.props.navigation.goBack();
+                                                            //Actualizar el currentUser
+                                                            auth.onAuthStateChanged((user) => {
+                                                                if (user) {
+                                                                    console.log(user);
+                                                                    // alert("Sigues logeado wey");
+                                                                    auth.currentUser.updateProfile({
+                                                                        displayName: form.usuario,
+                                                                        photoURL: form.fotoPrincipal
+                                                                    })
+                                                                        .then(res => {
+                                                                            console.log("Usuario actualizado")
+                                                                            this.setState({ uploadingData: false });
+                                                                            this.props.navigation.goBack();
+                                                                        })
+                                                                        .catch(err => {
+                                                                            console.log("Error actualizando usuario")
+                                                                            this.setState({ uploadingData: false });
+                                                                            this.props.navigation.goBack();
+                                                                        })
+
+                                                                }
+                                                            })
                                                         } else {
                                                             alert("Ha ocurrido un error");
                                                             this.setState({ uploadingData: false });
@@ -172,9 +191,27 @@ class Register extends Component {
                                             //SI NO HAY FOTO, SE SUBE SIN FOTO
                                             refUsuario.child(form.usuario).set(form, (err) => {
                                                 if (!err) {
-                                                    alert("Usuario registrado");
-                                                    this.setState({ uploadingData: false });
-                                                    this.props.navigation.goBack();
+                                                    auth.onAuthStateChanged((user) => {
+                                                        if (user) {
+                                                            console.log(user);
+                                                            // alert("Sigues logeado wey");
+                                                            auth.currentUser.updateProfile({
+                                                                displayName: form.usuario,
+                                                                photoURL: form.fotoPrincipal
+                                                            })
+                                                                .then(res => {
+                                                                    console.log("Usuario actualizado")
+                                                                    this.setState({ uploadingData: false });
+                                                                    this.props.navigation.goBack();
+                                                                })
+                                                                .catch(err => {
+                                                                    console.log("Error actualizando usuario")
+                                                                    this.setState({ uploadingData: false });
+                                                                    this.props.navigation.goBack();
+                                                                })
+
+                                                        }
+                                                    })
                                                 } else {
                                                     alert("Ha ocurrido un error");
                                                     this.setState({ uploadingData: false });
@@ -186,23 +223,19 @@ class Register extends Component {
                                 })
                             }
                         })
-                    } else
-                    {
+                    } else {
                         alert("Las claves no coinciden")
                         this.setState({ uploadingData: false });
                     }
-                } else
-                {
+                } else {
                     alert("La clave debe tener al menos 6 carácteres");
                     this.setState({ uploadingData: false });
                 }
-            } else
-            {
+            } else {
                 alert("El correo está incorrecto");
                 this.setState({ uploadingData: false });
             }
-        } else
-        {
+        } else {
             alert("El usuario debe tener al menos 6 carácteres");
             this.setState({ uploadingData: false });
         }
