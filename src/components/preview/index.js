@@ -10,8 +10,8 @@ class Preview extends PureComponent {
         return (
             <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModal} swipeDirection="right" onSwipe={OnCloseModal}
                 onBackdropPress={OnCloseModal}>
-                <View style={[styles.modal, { flex: 1 }]}>
-                    <Image source={{ uri: `data:image/png;base64, ${imageURL}` }} style={{flex: 1,width: null,height: null}} />
+                <View style={[styles.modal, { flex: 0.5 }]}>
+                    <Image source={{ uri: `data:image/png;base64, ${imageURL}` }} style={{flex: 1, width: null,height: null}} />
                     <Button transparent success block style={{marginTop: 5}} >
                         <Text>Aceptar</Text>
                     </Button>

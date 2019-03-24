@@ -7,4 +7,12 @@ const config = {
     messagingSenderId: "643282533725"
   };
 
+const currentUser= {
+    displayName: null,
+    email: null,
+    phoneNumber: null,
+    photoURL: null,
+    uid: null,//email
+}
+
 export {config}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage } from 'react-native'
-import { Drawer, Content, Container, Spinner, Text, Button } from 'native-base'
+import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image } from 'react-native'
+import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import { Camera, Permissions, FileSystem } from 'expo';
@@ -59,7 +59,7 @@ const MHeader = (props) => {
 }
 
 const MainCamera = (props) => {
-    const { hasCameraPermission, GetCameraAccess, cameraRef, isCameraOpen, type } = props;
+    const { hasCameraPermission, GetCameraAccess, cameraRef, isCameraOpen, type, photos } = props;
     if (hasCameraPermission === null && isCameraOpen) {
         alert("Para usar la cámara tiene que debe darnos acceso");
         GetCameraAccess();
@@ -69,14 +69,39 @@ const MainCamera = (props) => {
         GetCameraAccess();
         return <Text />;
     } else if (isCameraOpen) {
+        console.log("IMAGEN", photos[0])
         return (
             <View style={{ flex: 1 }}>
                 <Camera
                     // ref={(ref) => { this.camera = ref }}
-                    ratio="16:9"
+                    ratio="1:1"
                     ref={cameraRef}
-                    style={{ flex: 1 }} type={type}>
+                    style={{ flex: 0.5 }} type={type}>
                 </Camera>
+                <Container  style={{flex: 0.5, backgroundColor: "#282828"}}>
+                    <View  >
+                        <DeckSwiper dataSource={photos} renderItem={item => 
+                            <Card transparent >
+                                <CardItem style={styles.DarkColorBackground} >
+                                    <Left>
+                                        <Text style={styles.textWhite} >
+                                            Fotos del carrete
+                                        </Text>
+                                    </Left>
+                                    <Right>
+                                        <Text note>
+                                            {item.node.group_name}
+                                        </Text>
+                                    </Right>
+                                </CardItem>
+                                <CardItem cardBody button>
+                                    <Image source={item.node.image} style={{ width: "100%", height: 300, }} />
+                                </CardItem>
+                            </Card>
+                        } />
+                    </View>
+                </Container>
+
             </View>
         )
     } else {
@@ -84,10 +109,15 @@ const MainCamera = (props) => {
     }
 }
 
+const ShowCameraRoll = (props) => {
+    const { isCameraOpen, photos } = props;
+
+}
+
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
-        screen: "login",
+        screen: "Inicio",
         loading: false,
         open_modal: false,
         showSearcher: false,
@@ -96,7 +126,8 @@ class Main extends Component {
         isCameraOpen: false,
         newPhotoURL: null,
         cameraRef: React.createRef(),
-        previewVisible: false
+        previewVisible: false,
+        photos: []
     };
 
     async componentDidMount() {
@@ -109,30 +140,39 @@ class Main extends Component {
         app.initializeApp(config);
         this.auth = app.auth()
 
-        
-        
-        this.OnLogin("ronal2w@gmail.com", "hola123");        
-        
+
+
+        // this.OnLogin("ronal2w@gmail.com", "hola123");        
+
         // this.auth.signInWithCustomToken()
 
+        this.GetPhotosCamera();
     }
 
 
-    OnLogin =(email, password) =>
-    {
-        
+    GetPhotosCamera = async () => {
+        await CameraRoll.getPhotos({ first: 50 }).then(res => {
+            // console.log(res.edges)
+            this.setState({ photos: res.edges });
+
+        })
+    }
+
+
+    OnLogin = (email, password) => {
+
         this.auth.signInWithEmailAndPassword(email, password)
-        .then(res => {            
-            //Datos del usuario:
-            console.log(res.user.providerData[0]);
-                        
-            AsyncStorage.setItem("uid", res.user.uid);
-            alert("Usuario validado");
-        })
-        .catch(err => {
-            alert("Usuarios y/o clave incorrecto");
-            console.log(err)
-        })
+            .then(res => {
+                //Datos del usuario:
+                console.log(res.user.providerData[0]);
+
+                AsyncStorage.setItem("uid", res.user.uid);
+                alert("Usuario validado");
+            })
+            .catch(err => {
+                alert("Usuarios y/o clave incorrecto");
+                console.log(err)
+            })
     }
 
 
@@ -226,7 +266,7 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos } = this.state;
         const { navigation, auth } = this.props;
         console.log("Auth es: ", auth)
         if (screen == "login") {
@@ -240,7 +280,7 @@ class Main extends Component {
                     <MHeader screen={screen} showSearcher={showSearcher} handleModalFilter={this.handleModalFilter} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />
                     {/* {this.MainCamera()} */}
-                    <MainCamera cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
+                    <MainCamera photos={photos} cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
                     <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} handleModalFilter={this.handleModalFilter} />
                     <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
                     <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
