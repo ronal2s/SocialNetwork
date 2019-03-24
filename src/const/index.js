@@ -18,6 +18,8 @@ const currentUser= {
 const user = {
     uid: "",
     usuario: "",
+    clave: "", 
+    clave2:"",
     fotoPrincipal:"",
     correo:"",
     seguidores:[],

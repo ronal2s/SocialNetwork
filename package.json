@@ -17,6 +17,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.0.tar.gz",
     "react-native-chart-kit": "^1.2.1",
     "react-native-dashboard": "0.0.3",
+    "react-native-fetch-blob": "^0.10.8",
     "react-native-infinite-scroll": "^1.0.6",
     "react-native-js-stepper": "^0.2.1",
     "react-native-modal": "^7.0.2",

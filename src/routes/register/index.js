@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { Input, Item, Form, Text, Content, Button, Picker, Icon, ListItem, Thumbnail } from 'native-base'
+import { Input, Item, Form, Text, Content, Button, Spinner, Icon, ListItem, Thumbnail } from 'native-base'
 import { ImagePicker, Permissions } from "expo";
+
 import { user } from "../../const"
 import Stepper from 'react-native-js-stepper'
 import IconBoy from '../../../assets/icons/barber.png'
@@ -54,7 +55,7 @@ const Page3 = () => {
 }
 
 const Page4 = (props) => {
-    const { form, handleForm, navigation, OnRegister, PickerImage,fotoPrincipal } = props;
+    const { form, handleForm, navigation, OnRegister, PickerImage, fotoPrincipal, uploadingData, forceUpdate } = props;
     return <Content style={styles.RegisterFormContent} >
         <Form>
             {/* <ListItem avatar  > */}
@@ -71,11 +72,16 @@ const Page4 = (props) => {
                 <Input onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" />
             </Item>
             <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("clave", text)} placeholder="clave" />
+                <Input secureTextEntry onChangeText={(text) => handleForm("clave", text)} placeholder="Clave" />
+            </Item>
+            <Item rounded style={styles.RegisterItemsForm} >
+                <Input secureTextEntry onChangeText={(text) => handleForm("clave2", text)} placeholder="Confirmar clave" />
             </Item>
 
             <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={OnRegister} >
-                <Text style={styles.textWhite}  >Registrarse</Text>
+                {uploadingData ? <Spinner color="white" /> :
+                    <Text style={styles.textWhite}  >Registrarse</Text>
+                }
             </Button>
             <Button style={[styles.RegisterItemsSpacing, styles.buttonSecondary]} rounded bordered block onPress={() => navigation.goBack()} >
                 <Text style={styles.textDark} >Iniciar sesión</Text>
@@ -88,13 +94,121 @@ const Page4 = (props) => {
 class Register extends Component {
     state =
         {
-            form: { ...user }
+            form: { ...user },
+            uploadingData: false
         }
 
-        async componentDidMount()
+    async componentDidMount() {
+        this.GetCameraAccess();
+    }
+
+    OnRegister = async (form, auth) => {
+        // console.log(form)
+        this.setState({ uploadingData: true });
+        //VALIDANDO FORMULARIO GENERAL
+        if ((form.usuario.length >= 6)) {
+            //USAR FUNCION DE VALIDAR CORREO REAL
+            if (!(form.correo == "")) {
+                if (form.clave.length >= 6) {
+                    if(form.clave == form.clave2)
+                    {
+                        //Todo validado
+                        //CREANDO BLOB
+                        let blob = null;
+                        delete form.clave;
+                        delete form.clave2;
+                        //VERIFICANDO SI HAY FOTO 
+                        if (Object.keys(form.fotoPrincipal).length > 0) {
+                            blob = await new Promise((resolve, reject) => {
+                                const xhr = new XMLHttpRequest();
+                                xhr.onload = function () {
+                                    resolve(xhr.response);
+                                };
+                                xhr.onerror = function (e) {
+                                    console.log(e);
+                                    reject(new TypeError('Network request failed'));
+                                };
+                                xhr.responseType = 'blob';
+                                xhr.open('GET', form.fotoPrincipal.uri, true);
+                                xhr.send(null);
+                            });
+                        }
+                        //VERIFICAR SI EL CORREO EXISTE
+                        const refUsuario = auth.app.database().ref("/USUARIOS");
+                        //VERIFICANDO SI EL CORREO EXISTE
+                        refUsuario.orderByChild("correo").equalTo(form.correo).once("value", (snapshot) => {
+                            if (snapshot.exists()) {
+                                alert("Este correo ya ha sido registrado");
+                                this.setState({ uploadingData: false });
+                            } else {
+                                //VERIFICANDO SI EL USUARIO EXISTE
+                                refUsuario.orderByChild("usuario").equalTo(form.usuario).once("value", async (snapshot) => {
+                                    if (snapshot.exists()) {
+                                        alert("Este usuario ya ha sido registrado");
+                                        this.setState({ uploadingData: false });
+                                    } else {
+                                        //SI NO EXISTE, SUBIR LA FOTO SI EXISTE
+                                        if (blob != null) {
+                                            const refFoto = auth.app.storage().ref("/USUARIOS").child(form.usuario);
+                                            const snapshot = await refFoto.put(blob);
+                                            blob.close();
+                                            snapshot.ref.getDownloadURL()
+                                                .then(url => {
+                                                    form.fotoPrincipal = url;
+                                                    //SUBIR DATA
+                                                    refUsuario.child(form.usuario).set(form, (err) => {
+                                                        console.log(err)
+                                                        if (!err) {
+                                                            alert("Usuario registrado");
+                                                            this.setState({ uploadingData: false });
+                                                            this.props.navigation.goBack();
+                                                        } else {
+                                                            alert("Ha ocurrido un error");
+                                                            this.setState({ uploadingData: false });
+                                                        }
+                                                    })
+                                                })
+                                        } else {
+                                            //SI NO HAY FOTO, SE SUBE SIN FOTO
+                                            refUsuario.child(form.usuario).set(form, (err) => {
+                                                if (!err) {
+                                                    alert("Usuario registrado");
+                                                    this.setState({ uploadingData: false });
+                                                    this.props.navigation.goBack();
+                                                } else {
+                                                    alert("Ha ocurrido un error");
+                                                    this.setState({ uploadingData: false });
+                                                    console.log(err)
+                                                }
+                                            })
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    } else
+                    {
+                        alert("Las claves no coinciden")
+                        this.setState({ uploadingData: false });
+                    }
+                } else
+                {
+                    alert("La clave debe tener al menos 6 carácteres");
+                    this.setState({ uploadingData: false });
+                }
+            } else
+            {
+                alert("El correo está incorrecto");
+                this.setState({ uploadingData: false });
+            }
+        } else
         {
-            this.GetCameraAccess();
+            alert("El usuario debe tener al menos 6 carácteres");
+            this.setState({ uploadingData: false });
         }
+    }
+
+
 
     handleForm = (name, text) => {
         let { form } = this.state;
@@ -109,20 +223,18 @@ class Register extends Component {
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted', isCameraOpen: status === 'granted' });
     }
 
-    PickerImage = async() =>
-    {
+    PickerImage = async () => {
         // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})
-        await ImagePicker.launchImageLibraryAsync({allowsEditing: true, aspect: [4, 3], base64: true})
-        .then(res => {
-            // console.log(res);
-            if(!res.cancelled)
-            {
-                let { form } = this.state;
-                form.fotoPrincipal = res
-                this.setState({form})
-            }
-        })
-        .catch(err => console.log(err))
+        await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], base64: true })
+            .then(res => {
+                // console.log(res);
+                if (!res.cancelled) {
+                    let { form } = this.state;
+                    form.fotoPrincipal = res
+                    this.setState({ form })
+                }
+            })
+            .catch(err => console.log(err))
     }
 
     static navigationOptions = () => ({
@@ -135,10 +247,11 @@ class Register extends Component {
     })
     render() {
         const { handlePages, navigation } = this.props;
-        const { form } = this.state;
+        const { form, uploadingData } = this.state;
         const OnRegister = navigation.getParam("OnRegister", () => alert("Not working"));
+        const auth = navigation.getParam("auth");
         const fotoPrincipal = form.fotoPrincipal == "" ? IconDefault : form.fotoPrincipal;
-        console.log(Object.keys(form.fotoPrincipal))
+        console.log("AUH", auth)
         return (
             <Stepper
                 ref={(ref: any) => {
@@ -156,7 +269,8 @@ class Register extends Component {
                 <Page1 />
                 <Page2 />
                 <Page3 />
-                <Page4 fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => OnRegister(form)} form={form} navigation={navigation} handleForm={this.handleForm} />
+                {/* <Page4  uploadingData={uploadingData} fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => OnRegister(form)} form={form} navigation={navigation} handleForm={this.handleForm} /> */}
+                <Page4 uploadingData={uploadingData} fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => this.OnRegister(form, auth)} form={form} navigation={navigation} handleForm={this.handleForm} />
             </Stepper>
         )
     }

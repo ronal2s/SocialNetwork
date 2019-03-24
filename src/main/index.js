@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image, YellowBox } from 'react-native'
-import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
+import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right,  } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import { Camera, Permissions, FileSystem } from 'expo';
@@ -19,17 +19,18 @@ import Mynunus from '../routes/init'
 import Login from '../routes/login'
 import PreviewPhoto from '../components/preview'
 import styles from '../styles'
+// import { isNullOrUndefined } from 'util';
 
 YellowBox.ignoreWarnings(['Setting a timer']);
 const _console = _.clone(console);
 console.warn = message => {
-  if (message.indexOf('Setting a timer') <= -1) {
-    _console.warn(message);
-  }
+    if (message.indexOf('Setting a timer') <= -1) {
+        _console.warn(message);
+    }
 };
 const Loading = (props) => {
     const { loading } = props;
-    return <Modal style={styles.modal} isVisible={loading}>
+    return <Modal style={[styles.modal, {backgroundColor: "white"}]} isVisible={loading}>
         <View style={{ flex: 1 }}>
             <Spinner color="#0086c3" />
         </View>
@@ -48,10 +49,10 @@ const Home = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, open_modal, handleModalFilter, isCameraOpen } = props;
+    const { screen, isCameraOpen } = props;
     if (screen != "Inicio" && !isCameraOpen) {
         return <Container style={styles.main}>
-            {screen == "employees" && <Employees open_modal={open_modal} close_modal={handleModalFilter} />}
+            {screen == "employees" && <Employees />}
             {screen == "register" && <Register />}
         </Container>
     }
@@ -59,9 +60,9 @@ const Pages = (props) => {
 }
 
 const MHeader = (props) => {
-    const { showSearcher, handleModalFilter, open, screen } = props;
+    const { showSearcher, screen } = props;
     if (screen != "login") {
-        return <Header showSearcher={showSearcher} openModal={handleModalFilter} open={open} />
+        return <Header showSearcher={showSearcher}/>
     }
     return <Text />
 }
@@ -86,9 +87,9 @@ const MainCamera = (props) => {
                     ref={cameraRef}
                     style={{ flex: 0.5 }} type={type}>
                 </Camera>
-                <Container  style={{flex: 0.5, backgroundColor: "#282828"}}>
+                <Container style={{ flex: 0.5, backgroundColor: "#282828" }}>
                     <View  >
-                        <DeckSwiper dataSource={photos} renderItem={item => 
+                        <DeckSwiper dataSource={photos} renderItem={item =>
                             <Card transparent >
                                 <CardItem style={styles.DarkColorBackground} >
                                     <Left>
@@ -127,6 +128,7 @@ class Main extends Component {
     state = {
         screen: "login",
         loading: false,
+        uploadingData: false,
         open_modal: false,
         showSearcher: false,
         hasCameraPermission: "",
@@ -152,26 +154,22 @@ class Main extends Component {
         // this.auth.app.database().ref("/USUARIOS/adjhjasdah").once("value")
         // .then( res => console.log(res))
         // .catch(err => console.log(err))
+        this.auth.onAuthStateChanged((user) => {
+            if(user)
+            {
+                console.log(user);
+                // alert("Sigues logeado wey");
 
-        // this.OnLogin("ronal2w@gmail.com", "hola123");        
+            }
+        })
+        // this.OnLogin("ronal2ws@gmail.com", "hola123");        
 
         // this.auth.signInWithCustomToken()
 
         this.GetPhotosCamera();
     }
 
-    OnRegister = (form) =>
-    {
-        console.log(Object.keys(form.fotoPrincipal))
-        this.auth.app.storage().ref("/USUARIOS/borrar").put(form.fotoPrincipal.uri)
-        .then(res => {
-            console.log(res);
-        })
-        .catch(err => {
-            console.log(err)
-        })
-    }
-
+    
 
     GetPhotosCamera = async () => {
         await CameraRoll.getPhotos({ first: 50 }).then(res => {
@@ -213,11 +211,7 @@ class Main extends Component {
         }
         setTimeout(() => this.setState({ screen: page, loading: false }), 300);
     }
-
-    handleModalFilter = () => {
-        const { open_modal } = this.state;
-        this.setState({ open_modal: !open_modal });
-    }
+    
 
     OnCameraOpen = (camera) => {
         let { isCameraOpen } = this.state;
@@ -289,25 +283,26 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos, uploadingData } = this.state;
         const { navigation, auth } = this.props;
-        console.log("Auth es: ", auth)
+        console.log("LOASING ES: ", uploadingData)
         if (screen == "login") {
-            return <Login OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", {OnRegister: this.OnRegister})} handlePages={this.handlePages} />
+            return <Login OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
         }
         return (
             // <View>
             <Drawer panOpenMask={5} type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
                 content={<SideBar screen={screen} handlePages={this.handlePages} />} >
                 <Container style={styles.main} >
-                    <MHeader screen={screen} showSearcher={showSearcher} handleModalFilter={this.handleModalFilter} open={() => this.drawer._root.open()} />
+                    <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />
                     {/* {this.MainCamera()} */}
                     <MainCamera photos={photos} cameraRef={cameraRef} GetCameraAccess={this.GetCameraAccess} isCameraOpen={isCameraOpen} hasCameraPermission={hasCameraPermission} type={cameraType} />
-                    <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} handleModalFilter={this.handleModalFilter} />
+                    <Pages isCameraOpen={isCameraOpen} open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading}/>
                     <Home isCameraOpen={isCameraOpen} loading={loading} screen={screen} handlePages={this.handlePages} />
                     <BottomNav page={screen} OnCloseCamera={this.OnCloseCamera} flipCamera={this.flipCamera} camera={this.camera} OnCameraOpen={this.OnCameraOpen} isCameraOpen={isCameraOpen} />
                     <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} OnCloseModal={this.OnCloseModal} />
+                    {/* <Loading loading={true}/> */}
                 </Container>
             </Drawer>
             // {/* </View> */}
