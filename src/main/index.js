@@ -9,7 +9,7 @@ import _ from 'lodash';
 import "firebase/auth"
 import "firebase/database"
 import "firebase/storage"
-import { config, CURRENTUSER } from "../const"
+import { CONFIG, CURRENTUSER, GetBlob } from "../const"
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
@@ -143,7 +143,7 @@ class Main extends Component {
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
         const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
-        app.initializeApp(config);
+        app.initializeApp(CONFIG);
         this.auth = app.auth()
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
@@ -184,39 +184,33 @@ class Main extends Component {
                     let { currentUser } = this.state;
                     currentUser.fotoPrincipal = res;
                     //CREANDO BLOB 
-                    const blob = await new Promise((resolve, reject) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.onload = function () {
-                            resolve(xhr.response);
-                        };
-                        xhr.onerror = function (e) {
-                            console.log(e);
-                            reject(new TypeError('Network request failed'));
-                        };
-                        xhr.responseType = 'blob';
-                        xhr.open('GET', currentUser.fotoPrincipal.uri, true);
-                        xhr.send(null);
-                    });
+                    GetBlob(currentUser.fotoPrincipal.uri)
+                    .then(async blob => {
+                        //SUBIR IMAGEN
+                        const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
+                        const refUsuario = this.auth.app.database().ref("/USUARIOS");
+                        const snapshot = await refFoto.put(blob);
+                        blob.close();
+                        snapshot.ref.getDownloadURL()
+                            .then(url => {
+                                currentUser.fotoPrincipal = url;
+                                //ACTUALIZAR DATA
+                                refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
+                                    console.log(err)
+                                    if (!err) {
+                                        this.setState({ currentUser, isUploadingPhoto: false })
+                                    } else {
+                                        alert("Ha ocurrido un error cambiando la imagen de perfil");
+                                        this.setState({ isUploadingPhoto: false });
+                                    }
+                                })
+                            })                        
+                    })
+                    .catch(err => {
+                        alert("Ha ocurrido un error");
+                        console.log(err)
+                    })
 
-                    //SUBIR IMAGEN
-                    const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
-                    const refUsuario = this.auth.app.database().ref("/USUARIOS");
-                    const snapshot = await refFoto.put(blob);
-                    blob.close();
-                    snapshot.ref.getDownloadURL()
-                        .then(url => {
-                            currentUser.fotoPrincipal = url;
-                            //ACTUALIZAR DATA
-                            refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
-                                console.log(err)
-                                if (!err) {
-                                    this.setState({ currentUser, isUploadingPhoto: false })
-                                } else {
-                                    alert("Ha ocurrido un error cambiando la imagen de perfil");
-                                    this.setState({ isUploadingPhoto: false });
-                                }
-                            })
-                        })
                 } else {
 
                     this.setState({ isUploadingPhoto: false });

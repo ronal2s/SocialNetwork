@@ -1,39 +1,39 @@
-const config = {
+const CONFIG = {
     apiKey: "AIzaSyAksBhAo90khYTZP8BQgL11lohW34WBdOE",
     authDomain: "socialnetwork-3b7a1.firebaseapp.com",
-    databaseURL: "https://socialnetwork-3b7a1.firebaseio.com",    
+    databaseURL: "https://socialnetwork-3b7a1.firebaseio.com",
     projectId: "socialnetwork-3b7a1",
     storageBucket: "socialnetwork-3b7a1.appspot.com",
     messagingSenderId: "643282533725"
-  };
+};
 
 const CURRENTUSER = {
     correo: "",
-    fotoPrincipal:"",
-    usuario:""
+    fotoPrincipal: "",
+    usuario: ""
 }
 
 const user = {
     // uid: "",
     usuario: "",
-    clave: "", 
-    clave2:"",
-    fotoPrincipal:"",
-    correo:"",
-    seguidores:[],
+    clave: "",
+    clave2: "",
+    fotoPrincipal: "",
+    correo: "",
+    seguidores: [],
     fotos: [],
     likes: [], //A quien mis fotos le gustan
-    mensajes: 
-    [
-        {
-            usuario: "",
-            mensajes: 
+    mensajes:
+        [
             {
-                yo: "",
-                tu:""
+                usuario: "",
+                mensajes:
+                {
+                    yo: "",
+                    tu: ""
+                }
             }
-        }
-    ]
+        ]
 
 }
 
@@ -43,6 +43,25 @@ const verifyEmail = (value) => {
         return true;
     }
     return false;
-  }
+}
 
-export {config, user,CURRENTUSER, verifyEmail}
+async function GetBlob(photo)  
+{
+    const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+            console.log(e);
+            reject(new TypeError('Network request failed'));
+        };
+        xhr.responseType = 'blob';
+        xhr.open('GET', photo, true);
+        xhr.send(null);
+    });
+    return blob;
+}
+
+
+export { CONFIG, user, CURRENTUSER, verifyEmail, GetBlob }
