@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Image, TouchableOpacity, AsyncStorage } from 'react-native'
 import { Input, Item, Form, Text, Content, Button, Spinner, Icon, ListItem, Thumbnail } from 'native-base'
 import { ImagePicker, Permissions } from "expo";
 import Stepper from 'react-native-js-stepper'
@@ -162,6 +162,9 @@ class Register extends Component {
                                             snapshot.ref.getDownloadURL()
                                                 .then(url => {
                                                     form.fotoPrincipal = url;
+                                                    // AsyncStorage.setItem("userPhoto", url);
+                                                    // AsyncStorage.setItem("userName", form.usuario);
+                                                    // AsyncStorage.setItem("userName", form.usuario);
                                                     //SUBIR DATA
                                                     delete form.clave;
                                                     delete form.clave2;
@@ -218,7 +221,8 @@ class Register extends Component {
 
     handleForm = (name, text) => {
         let { form } = this.state;
-        form[name] = text;
+        form[name] = text.toLowerCase();
+        console.log("FORMULARIO: ", form)
         this.setState({ form })
     }
 
@@ -257,7 +261,6 @@ class Register extends Component {
         const OnRegister = navigation.getParam("OnRegister", () => alert("Not working"));
         const auth = navigation.getParam("auth");
         const fotoPrincipal = form.fotoPrincipal == "" ? IconDefault : form.fotoPrincipal;
-        console.log("AUH", auth)
         return (
             <Stepper
                 ref={(ref: any) => {

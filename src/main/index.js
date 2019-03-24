@@ -128,7 +128,7 @@ class Main extends Component {
     state = {
         screen: "login",
         loading: false,
-        uploadingData: false,
+        loadingUser: false,
         open_modal: false,
         showSearcher: false,
         hasCameraPermission: "",
@@ -137,32 +137,34 @@ class Main extends Component {
         newPhotoURL: null,
         cameraRef: React.createRef(),
         previewVisible: false,
-        photos: []
+        photos: [],
+        currentUser: {}
     };
 
     async componentDidMount() {
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
         const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
-
-
-
         app.initializeApp(config);
         this.auth = app.auth()
-        //RECORDAR BORRAR LA PARTE EN QUE ACTUALIZA EL USUARIO ACTUAL, DEJARLO PARA EL MENÚ DEL USUARIO O ALGO ASÍ
-        //PORQUE EL USUARIOA CTUAL QUE ACTUALIZA ES EL QUE YA ESTÁ LOGEADO EN LA APP, NO EL NUEVO QUE SE HIZO
-
-        
-        // this.auth.onAuthStateChanged((user) => {
-        //     if(user)
-        //     {
-        //         console.log("USUARIO: ", user)
-        //     }
-        // })
-        // this.OnLogin("ronal2ws@gmail.com", "hola1234");        
-
-        // this.auth.signInWithCustomToken()
-
+        //VALIDAR SI LA SESION SIGUE ACTIVA 
+        //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
+        this.auth.onAuthStateChanged((user) => {
+            if (user) {
+                this.setState({loadingUser: true})
+                console.log(user.email);
+                this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(user.email).once("value", (snapshot) => {
+                    if (snapshot.exists()) {
+                        const UserKey = Object.keys(snapshot.val())[0]
+                        // console.log(snapshot.val()[UserKey])
+                        this.setState({ currentUser: snapshot.val()[UserKey] })
+                        // alert("Usuario validado");
+                        // this.setState({loadingUser: false})
+                        this.handlePages("Inicio");
+                    }
+                })
+            }
+        })
         this.GetPhotosCamera();
     }
 
@@ -177,19 +179,31 @@ class Main extends Component {
     }
 
 
+
+
     OnLogin = (email, password) => {
 
+        this.setState({loadingUser: true});
         this.auth.signInWithEmailAndPassword(email, password)
             .then(res => {
-                console.log(res.user);
-                //Datos del usuario:
-                // console.log(res.user.providerData[0]);
-
+                // console.log(res.user.email);
+                //Obtener datos del usuario
                 AsyncStorage.setItem("uid", res.user.uid);
-                alert("Usuario validado");
+                this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(res.user.email).once("value", (snapshot) => {
+                    if (snapshot.exists()) {
+                        const UserKey = Object.keys(snapshot.val())[0]
+                        // console.log(snapshot.val()[UserKey])
+                        this.setState({ currentUser: snapshot.val()[UserKey] })
+                        // alert("Usuario validado");
+                        // this.setState({loadingUser: false});
+                        this.handlePages("Inicio");
+                    }
+                })
+
             })
             .catch(err => {
                 alert("Usuarios y/o clave incorrecto");
+                this.setState({loadingUser: false});
                 console.log(err)
             })
     }
@@ -217,7 +231,6 @@ class Main extends Component {
             isCameraOpen = true;
         } else {
             //Capturar foto
-            console.log("WEEEY")
             this.OnTakePicture();
         }
         this.setState({ isCameraOpen })
@@ -236,7 +249,7 @@ class Main extends Component {
 
     OnPictureSaved = async photo => {
         const urlPhoto = `${FileSystem.documentDirectory}photos/${Date.now()}.jpg`
-        console.log(Object.keys(photo))
+        // console.log(Object.keys(photo))
         let { hasCameraRollPermission, isCameraOpen } = this.state;
         // await FileSystem.moveAsync({
         //     from: photo.uri,
@@ -281,11 +294,11 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos, uploadingData } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos, loadingUser, currentUser } = this.state;
         const { navigation, auth } = this.props;
-        console.log("LOASING ES: ", uploadingData)
+        console.log("USUARIO ES: ", currentUser)
         if (screen == "login") {
-            return <Login OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
+            return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
         }
         return (
             // <View>

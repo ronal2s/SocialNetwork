@@ -16,7 +16,7 @@ const currentUser= {
 }
 
 const user = {
-    uid: "",
+    // uid: "",
     usuario: "",
     clave: "", 
     clave2:"",
