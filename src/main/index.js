@@ -17,6 +17,7 @@ import Employees from '../routes/employees'
 import Register from '../routes/register'
 import Mynunus from '../routes/init'
 import Login from '../routes/login'
+import LoadingPage from '../routes/loading'
 import PreviewPhoto from '../components/preview'
 import styles from '../styles'
 // import { isNullOrUndefined } from 'util';
@@ -126,7 +127,7 @@ const ShowCameraRoll = (props) => {
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
-        screen: "login",
+        screen: "loading",
         loading: false,
         loadingUser: false,
         open_modal: false,
@@ -155,14 +156,13 @@ class Main extends Component {
                 console.log(user.email);
                 this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
-                        const UserKey = Object.keys(snapshot.val())[0]
-                        // console.log(snapshot.val()[UserKey])
-                        this.setState({ currentUser: snapshot.val()[UserKey] })
-                        // alert("Usuario validado");
-                        // this.setState({loadingUser: false})
-                        this.handlePages("Inicio");
+                        const UserKey = Object.keys(snapshot.val())[0]                        
+                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio" })                        
                     }
                 })
+            } else
+            {
+                this.setState({screen: "login"})
             }
         })
         this.GetPhotosCamera();
@@ -287,6 +287,11 @@ class Main extends Component {
     }
 
 
+    setUser = (user) =>
+    {
+        this.setState({currentUser: user, screen: "Inicio"});
+    }
+
     static navigationOptions = {
         header: null
     }
@@ -299,6 +304,10 @@ class Main extends Component {
         console.log("USUARIO ES: ", currentUser)
         if (screen == "login") {
             return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
+        }
+        if(screen == "loading")
+        {
+            return <LoadingPage />
         }
         return (
             // <View>
