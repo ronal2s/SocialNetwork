@@ -144,10 +144,7 @@ class Register extends Component {
                                                     blob.close();
                                                     snapshot.ref.getDownloadURL()
                                                         .then(url => {
-                                                            form.fotoPrincipal = url;
-                                                            // AsyncStorage.setItem("userPhoto", url);
-                                                            // AsyncStorage.setItem("userName", form.usuario);
-                                                            // AsyncStorage.setItem("userName", form.usuario);
+                                                            form.fotoPrincipal = url;                                                            
                                                             //SUBIR DATA
                                                             auth.createUserWithEmailAndPassword(form.correo, form.clave)
                                                             .then(res => {

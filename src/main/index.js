@@ -367,7 +367,7 @@ class Main extends Component {
         }
         return (
             // <View>
-            <Drawer panOpenMask={5} type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
+            <Drawer type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
                 content={<SideBar screen={screen} OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
                 <Container style={styles.main} >
                     <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
