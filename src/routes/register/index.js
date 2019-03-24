@@ -57,8 +57,7 @@ const Page3 = () => {
 
 export class Page44 extends Component {
 
-    NextInput = (name) =>
-    {
+    NextInput = (name) => {
         this.refs[name]._root.focus();
     }
 
@@ -77,7 +76,7 @@ export class Page44 extends Component {
                     <Input keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputUsuario")} onChangeText={(text) => handleForm("correo", text)} placeholder="Correo" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")}  onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" autoCapitalize="none" />
+                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")} onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
                     <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("clave", text)} placeholder="Clave" autoCapitalize="none" />
@@ -120,51 +119,68 @@ class Register extends Component {
                 if (form.clave.length >= 6) {
                     if (form.clave == form.clave2) {
                         //Todo validado
-                        
-                        //CREANDO BLOB
-                        GetBlob(form.fotoPrincipal.uri)
-                        .then(async blob => {
-                            //VERIFICAR SI EL CORREO EXISTE
-                            const refUsuario = auth.app.database().ref("/USUARIOS");
-                            //VERIFICANDO SI EL CORREO EXISTE
-                            refUsuario.orderByChild("correo").equalTo(form.correo).once("value", (snapshot) => {
-                                if (snapshot.exists()) {
-                                    alert("Este correo ya ha sido registrado");
-                                    this.setState({ uploadingData: false });
-                                } else {
-                                    //VERIFICANDO SI EL USUARIO EXISTE
-                                    refUsuario.orderByChild("usuario").equalTo(form.usuario).once("value", async (snapshot) => {
-                                        if (snapshot.exists()) {
-                                            alert("Este usuario ya ha sido registrado");
-                                            this.setState({ uploadingData: false });
-                                        } else {
-                                            //SI NO EXISTE, SUBIR LA FOTO SI EXISTE
-                                            if (blob != null) {
-                                                const refFoto = auth.app.storage().ref("/USUARIOS").child(form.usuario);
-                                                const snapshot = await refFoto.put(blob);
-                                                blob.close();
-                                                snapshot.ref.getDownloadURL()
-                                                    .then(url => {
-                                                        form.fotoPrincipal = url;
-                                                        // AsyncStorage.setItem("userPhoto", url);
-                                                        // AsyncStorage.setItem("userName", form.usuario);
-                                                        // AsyncStorage.setItem("userName", form.usuario);
-                                                        //SUBIR DATA
-                                                        delete form.clave;
-                                                        delete form.clave2;
-                                                        refUsuario.child(form.usuario).set(form, (err) => {
-                                                            console.log(err)
-                                                            if (!err) {
-                                                                alert("Usuario registrado");
-                                                                this.props.navigation.goBack();
-                                                            } else {
-                                                                alert("Ha ocurrido un error");
-                                                                this.setState({ uploadingData: false });
-                                                            }
+
+
+                        //VERIFICAR SI EL CORREO EXISTE
+                        const refUsuario = auth.app.database().ref("/USUARIOS");
+                        //VERIFICANDO SI EL CORREO EXISTE
+                        refUsuario.orderByChild("correo").equalTo(form.correo).once("value", (snapshot) => {
+                            if (snapshot.exists()) {
+                                alert("Este correo ya ha sido registrado");
+                                this.setState({ uploadingData: false });
+                            } else {
+                                //VERIFICANDO SI EL USUARIO EXISTE
+                                refUsuario.orderByChild("usuario").equalTo(form.usuario).once("value", async (snapshot) => {
+                                    if (snapshot.exists()) {
+                                        alert("Este usuario ya ha sido registrado");
+                                        this.setState({ uploadingData: false });
+                                    } else {
+                                        //SI NO EXISTE, SUBIR LA FOTO SI EXISTE
+                                        if (Object.keys(form.fotoPrincipal).length > 0) {
+                                            GetBlob(form.fotoPrincipal.uri)
+                                                .then(async blob => {
+                                                    const refFoto = auth.app.storage().ref("/USUARIOS").child(form.usuario);
+                                                    const snapshot = await refFoto.put(blob);
+                                                    blob.close();
+                                                    snapshot.ref.getDownloadURL()
+                                                        .then(url => {
+                                                            form.fotoPrincipal = url;
+                                                            // AsyncStorage.setItem("userPhoto", url);
+                                                            // AsyncStorage.setItem("userName", form.usuario);
+                                                            // AsyncStorage.setItem("userName", form.usuario);
+                                                            //SUBIR DATA
+                                                            auth.createUserWithEmailAndPassword(form.correo, form.clave)
+                                                            .then(res => {
+                                                                console.log(res);
+                                                                delete form.clave;
+                                                                delete form.clave2;
+                                                                refUsuario.child(form.usuario).set(form, (err) => {
+                                                                    console.log(err)
+                                                                    if (!err) {
+                                                                        alert("Usuario registrado");
+                                                                        this.props.navigation.goBack();
+                                                                    } else {
+                                                                        alert("Ha ocurrido un error");
+                                                                        this.setState({ uploadingData: false });
+                                                                    }
+                                                                })
+                                                            })
+                                                            .catch(err => {
+                                                                console.log("Ha ocurrido un error");
+                                                                alert("err")
+                                                            })
                                                         })
-                                                    })
-                                            } else {
-                                                //SI NO HAY FOTO, SE SUBE SIN FOTO
+                                                })
+                                                .catch(err => {
+                                                    console.log(err);
+                                                    alert("Ha ocurrido un error");
+                                                })
+
+                                        }
+                                        else {
+                                            //SI NO HAY FOTO, SE SUBE SIN FOTO
+                                            auth.createUserWithEmailAndPassword(form.correo, form.clave)
+                                            .then(res => {
                                                 delete form.clave;
                                                 delete form.clave2;
                                                 refUsuario.child(form.usuario).set(form, (err) => {
@@ -178,15 +194,15 @@ class Register extends Component {
                                                         console.log(err)
                                                     }
                                                 })
-                                            }
+                                            })
+                                            .catch(err => {
+                                                console.log(err);
+                                                alert("Ha ocurrido un error")
+                                            })
                                         }
-                                    })
-                                }
-                            })
-                        })
-                        .catch(err => {
-                            alert("Ha ocurrido un error");
-                            console.log(err)
+                                    }
+                                })
+                            }
                         })
                     } else {
                         alert("Las claves no coinciden")

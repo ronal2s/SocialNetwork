@@ -147,6 +147,7 @@ class Main extends Component {
         this.auth = app.auth()
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
+        
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
@@ -154,11 +155,11 @@ class Main extends Component {
                 this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
-                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio" })
+                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio", loadingUser: false })
                     }
                 })
             } else {
-                this.setState({ screen: "login" })
+                this.setState({ screen: "login", loadingUser: false })
             }
         })
         this.GetPhotosCamera();
@@ -236,7 +237,7 @@ class Main extends Component {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // console.log(snapshot.val()[UserKey])
-                        this.setState({ currentUser: snapshot.val()[UserKey] })
+                        this.setState({ currentUser: snapshot.val()[UserKey], loadingUser: false })
                         // alert("Usuario validado");
                         // this.setState({loadingUser: false});
                         this.handlePages("Inicio");
@@ -249,6 +250,19 @@ class Main extends Component {
                 this.setState({ loadingUser: false });
                 console.log(err)
             })
+    }
+
+    OnLogout = () =>
+    {
+        this.auth.signOut()
+        .then(res => {
+            console.log(res);
+            this.setState({screen: "login"});
+        })
+        .catch(err => {
+            console.log(err);
+            alert("Ha ocurrido un error");
+        })
     }
 
 
@@ -354,7 +368,7 @@ class Main extends Component {
         return (
             // <View>
             <Drawer panOpenMask={5} type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
-                content={<SideBar screen={screen} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
+                content={<SideBar screen={screen} OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
                 <Container style={styles.main} >
                     <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />
