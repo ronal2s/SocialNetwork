@@ -3,13 +3,13 @@ import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage
 import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
-import { Camera, Permissions, FileSystem } from 'expo';
+import { Camera, Permissions, FileSystem, ImagePicker } from 'expo';
 import app from "firebase/app"
 import _ from 'lodash';
 import "firebase/auth"
 import "firebase/database"
 import "firebase/storage"
-import { config } from "../const"
+import { config, CURRENTUSER } from "../const"
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
@@ -61,9 +61,9 @@ const Pages = (props) => {
 }
 
 const MHeader = (props) => {
-    const { showSearcher, screen } = props;
+    const { showSearcher, screen, open } = props;
     if (screen != "login") {
-        return <Header showSearcher={showSearcher} />
+        return <Header showSearcher={showSearcher} open={open} />
     }
     return <Text />
 }
@@ -119,16 +119,13 @@ const MainCamera = (props) => {
     }
 }
 
-const ShowCameraRoll = (props) => {
-    const { isCameraOpen, photos } = props;
-
-}
 
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
         screen: "loading",
         loading: false,
+        isUploadingPhoto: false,
         loadingUser: false,
         open_modal: false,
         showSearcher: false,
@@ -139,7 +136,7 @@ class Main extends Component {
         cameraRef: React.createRef(),
         previewVisible: false,
         photos: [],
-        currentUser: {}
+        currentUser: { ...CURRENTUSER }
     };
 
     async componentDidMount() {
@@ -152,17 +149,16 @@ class Main extends Component {
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
         this.auth.onAuthStateChanged((user) => {
             if (user) {
-                this.setState({loadingUser: true})
+                this.setState({ loadingUser: true })
                 console.log(user.email);
                 this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
-                        const UserKey = Object.keys(snapshot.val())[0]                        
-                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio" })                        
+                        const UserKey = Object.keys(snapshot.val())[0]
+                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio" })
                     }
                 })
-            } else
-            {
-                this.setState({screen: "login"})
+            } else {
+                this.setState({ screen: "login" })
             }
         })
         this.GetPhotosCamera();
@@ -178,12 +174,65 @@ class Main extends Component {
         })
     }
 
+    OnChangeProfilePhoto = async () => {
+        // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})        
+        await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], base64: true })
+            .then(async (res) => {
+                // console.log(res);
+                if (!res.cancelled) {
+                    this.setState({ isUploadingPhoto: true });
+                    let { currentUser } = this.state;
+                    currentUser.fotoPrincipal = res;
+                    //CREANDO BLOB 
+                    const blob = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.onload = function () {
+                            resolve(xhr.response);
+                        };
+                        xhr.onerror = function (e) {
+                            console.log(e);
+                            reject(new TypeError('Network request failed'));
+                        };
+                        xhr.responseType = 'blob';
+                        xhr.open('GET', currentUser.fotoPrincipal.uri, true);
+                        xhr.send(null);
+                    });
 
+                    //SUBIR IMAGEN
+                    const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
+                    const refUsuario = this.auth.app.database().ref("/USUARIOS");
+                    const snapshot = await refFoto.put(blob);
+                    blob.close();
+                    snapshot.ref.getDownloadURL()
+                        .then(url => {
+                            currentUser.fotoPrincipal = url;
+                            //ACTUALIZAR DATA
+                            refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
+                                console.log(err)
+                                if (!err) {
+                                    this.setState({ currentUser, isUploadingPhoto: false })
+                                } else {
+                                    alert("Ha ocurrido un error cambiando la imagen de perfil");
+                                    this.setState({ isUploadingPhoto: false });
+                                }
+                            })
+                        })
+                } else {
+
+                    this.setState({ isUploadingPhoto: false });
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                this.setState({ isUploadingPhoto: false });
+            })
+
+    }
 
 
     OnLogin = (email, password) => {
 
-        this.setState({loadingUser: true});
+        this.setState({ loadingUser: true });
         this.auth.signInWithEmailAndPassword(email, password)
             .then(res => {
                 // console.log(res.user.email);
@@ -203,7 +252,7 @@ class Main extends Component {
             })
             .catch(err => {
                 alert("Usuarios y/o clave incorrecto");
-                this.setState({loadingUser: false});
+                this.setState({ loadingUser: false });
                 console.log(err)
             })
     }
@@ -287,9 +336,8 @@ class Main extends Component {
     }
 
 
-    setUser = (user) =>
-    {
-        this.setState({currentUser: user, screen: "Inicio"});
+    setUser = (user) => {
+        this.setState({ currentUser: user, screen: "Inicio" });
     }
 
     static navigationOptions = {
@@ -299,20 +347,20 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef, previewVisible, newPhotoURL, photos, loadingUser, currentUser } = this.state;
+        const { screen, loading, open_modal, showSearcher, hasCameraPermission, cameraType, isCameraOpen, cameraRef,
+            previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto } = this.state;
         const { navigation, auth } = this.props;
-        console.log("USUARIO ES: ", currentUser)
+        // console.log("USUARIO ES: ", currentUser)
         if (screen == "login") {
             return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
         }
-        if(screen == "loading")
-        {
+        if (screen == "loading") {
             return <LoadingPage />
         }
         return (
             // <View>
             <Drawer panOpenMask={5} type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
-                content={<SideBar screen={screen} handlePages={this.handlePages} />} >
+                content={<SideBar screen={screen} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
                 <Container style={styles.main} >
                     <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />

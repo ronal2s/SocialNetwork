@@ -7,12 +7,10 @@ const config = {
     messagingSenderId: "643282533725"
   };
 
-const currentUser= {
-    displayName: null,
-    email: null,
-    phoneNumber: null,
-    photoURL: null,
-    uid: null,//email
+const CURRENTUSER = {
+    correo: "",
+    fotoPrincipal:"",
+    usuario:""
 }
 
 const user = {
@@ -47,4 +45,4 @@ const verifyEmail = (value) => {
     return false;
   }
 
-export {config, user, verifyEmail}
+export {config, user,CURRENTUSER, verifyEmail}

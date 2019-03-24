@@ -120,10 +120,9 @@ class Register extends Component {
                 if (form.clave.length >= 6) {
                     if (form.clave == form.clave2) {
                         //Todo validado
+                        
                         //CREANDO BLOB
                         let blob = null;
-                        const currentPassword = form.clave;
-
                         //VERIFICANDO SI HAY FOTO 
                         if (Object.keys(form.fotoPrincipal).length > 0) {
                             blob = await new Promise((resolve, reject) => {
