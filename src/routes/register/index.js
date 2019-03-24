@@ -1,10 +1,13 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Image } from 'react-native'
-import { Input, Item, Form, Text, Content, Button, Picker, Icon } from 'native-base'
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { Input, Item, Form, Text, Content, Button, Picker, Icon, ListItem, Thumbnail } from 'native-base'
+import { ImagePicker, Permissions } from "expo";
+import { user } from "../../const"
 import Stepper from 'react-native-js-stepper'
 import IconBoy from '../../../assets/icons/barber.png'
 import IconWoman from '../../../assets/icons/hair-cut.png'
 import IconSalon from '../../../assets/icons/hair-salon.png'
+import IconDefault from '../../../assets/icons/user.png'
 import styles from '../../styles'
 
 const Page1 = (props) => {
@@ -36,6 +39,7 @@ const Page2 = () => {
 }
 
 const Page3 = () => {
+
     return <View style={styles.RegisterViews} >
         <Image source={IconSalon} style={styles.RegisterIconsSize} />
         <Text style={styles.textTitle}>
@@ -50,37 +54,27 @@ const Page3 = () => {
 }
 
 const Page4 = (props) => {
-    const { form , handleForm, navigation} = props;
+    const { form, handleForm, navigation, OnRegister, PickerImage,fotoPrincipal } = props;
     return <Content style={styles.RegisterFormContent} >
         <Form>
+            {/* <ListItem avatar  > */}
+            <TouchableOpacity onPress={PickerImage} >
+                <View style={{ justifyContent: "center", alignItems: "center" }}>
+                    <Thumbnail style={{ borderRadius: 100 }} source={fotoPrincipal} width={200} height={200} />
+                </View>
+            </TouchableOpacity>
+            {/* </ListItem> */}
             <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("nombres", text)} placeholder="Nombres" />
+                <Input onChangeText={(text) => handleForm("correo", text)} placeholder="Correo" />
             </Item>
             <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("apellidos", text)} placeholder="Apellidos" />
+                <Input onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" />
             </Item>
             <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("direccion", text)} placeholder="Dirección" />
-            </Item>
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("cedula", text)} placeholder="Cédula" />
-            </Item>
-            <Item rounded style={styles.RegisterItemsForm} >
-                <Input onChangeText={(text) => handleForm("telefonoPersonal", text)} keyboardType="number-pad" placeholder="Teléfono personal" />
-            </Item>                        
-            
-            <Item rounded style={styles.RegisterItemsForm}>
-                <Picker mode="dropdown" placeholder="Método de pago" iosIcon={<Icon name="ios-arrow-down-outline" />}
-                placeholderStyle={{ color: "#bfc6ea" }} selectedValue={form.pago}
-                onValueChange={(val) => handleForm("pago", val)}>
-                    <Picker.Item value={0} label="Método de pago"/>
-                    <Picker.Item value={"debito"} label="Tarjeta de débito"/>
-                    <Picker.Item value={"credito"} label="Tarjeta de crédito"/>
-                    <Picker.Item value={"efectivo"} label="Efectivo"/>
-                </Picker>
+                <Input onChangeText={(text) => handleForm("clave", text)} placeholder="clave" />
             </Item>
 
-            <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={() => navigation.goBack()} >
+            <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={OnRegister} >
                 <Text style={styles.textWhite}  >Registrarse</Text>
             </Button>
             <Button style={[styles.RegisterItemsSpacing, styles.buttonSecondary]} rounded bordered block onPress={() => navigation.goBack()} >
@@ -93,17 +87,44 @@ const Page4 = (props) => {
 
 class Register extends Component {
     state =
-    {
-        form: {nombres:"", apellidos:"", direccion:"", cedula:"", telefonoPersonal:"", pago: ""}
+        {
+            form: { ...user }
+        }
+
+        async componentDidMount()
+        {
+            this.GetCameraAccess();
+        }
+
+    handleForm = (name, text) => {
+        let { form } = this.state;
+        form[name] = text;
+        this.setState({ form })
     }
 
-    handleForm = (name, text) =>
-    {
-        let {form} = this.state;
-        form[name] = text;
-        this.setState({form})
+    GetCameraAccess = async () => {
+        this.setState({ isCameraOpen: false })
+        const { status } = await Permissions.askAsync(Permissions.CAMERA);
+        const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted', isCameraOpen: status === 'granted' });
     }
-    
+
+    PickerImage = async() =>
+    {
+        // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})
+        await ImagePicker.launchImageLibraryAsync({allowsEditing: true, aspect: [4, 3], base64: true})
+        .then(res => {
+            // console.log(res);
+            if(!res.cancelled)
+            {
+                let { form } = this.state;
+                form.fotoPrincipal = res
+                this.setState({form})
+            }
+        })
+        .catch(err => console.log(err))
+    }
+
     static navigationOptions = () => ({
         title: "Registro",
         // header: null
@@ -112,9 +133,12 @@ class Register extends Component {
         },
         headerTintColor: "white"
     })
-    render() {        
-        const {handlePages, navigation} = this.props;
-        const {form} = this.state;
+    render() {
+        const { handlePages, navigation } = this.props;
+        const { form } = this.state;
+        const OnRegister = navigation.getParam("OnRegister", () => alert("Not working"));
+        const fotoPrincipal = form.fotoPrincipal == "" ? IconDefault : form.fotoPrincipal;
+        console.log(Object.keys(form.fotoPrincipal))
         return (
             <Stepper
                 ref={(ref: any) => {
@@ -128,15 +152,11 @@ class Register extends Component {
                 steps={['Inicio', 'Registro']}
                 backButtonTitle="Atrás"
                 nextButtonTitle="Siguiente"
-                // activeStepStyle={{backgroundColor: "black"}}
-                // inactiveStepStyle={styles.RegisterInactiveDot}
-                // activeStepTitleStyle={styles.RegisterActiveStepTitle}
-                // inactiveStepTitleStyle={styles.RegisterInactiveStepTitle}
-                >
+            >
                 <Page1 />
                 <Page2 />
                 <Page3 />
-                <Page4 form={form} navigation={navigation}  handleForm={this.handleForm}/>
+                <Page4 fotoPrincipal={fotoPrincipal} PickerImage={this.PickerImage} OnRegister={() => OnRegister(form)} form={form} navigation={navigation} handleForm={this.handleForm} />
             </Stepper>
         )
     }

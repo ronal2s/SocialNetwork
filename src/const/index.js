@@ -15,4 +15,26 @@ const currentUser= {
     uid: null,//email
 }
 
-export {config}
+const user = {
+    uid: "",
+    usuario: "",
+    fotoPrincipal:"",
+    correo:"",
+    seguidores:[],
+    fotos: [],
+    likes: [], //A quien mis fotos le gustan
+    mensajes: 
+    [
+        {
+            usuario: "",
+            mensajes: 
+            {
+                yo: "",
+                tu:""
+            }
+        }
+    ]
+
+}
+
+export {config, user}

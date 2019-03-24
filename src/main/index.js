@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image } from 'react-native'
+import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image, YellowBox } from 'react-native'
 import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation'
 import { Camera, Permissions, FileSystem } from 'expo';
 import app from "firebase/app"
+import _ from 'lodash';
 import "firebase/auth"
 import "firebase/database"
 import "firebase/storage"
@@ -19,6 +20,13 @@ import Login from '../routes/login'
 import PreviewPhoto from '../components/preview'
 import styles from '../styles'
 
+YellowBox.ignoreWarnings(['Setting a timer']);
+const _console = _.clone(console);
+console.warn = message => {
+  if (message.indexOf('Setting a timer') <= -1) {
+    _console.warn(message);
+  }
+};
 const Loading = (props) => {
     const { loading } = props;
     return <Modal style={styles.modal} isVisible={loading}>
@@ -117,7 +125,7 @@ const ShowCameraRoll = (props) => {
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
-        screen: "Inicio",
+        screen: "login",
         loading: false,
         open_modal: false,
         showSearcher: false,
@@ -141,12 +149,27 @@ class Main extends Component {
         this.auth = app.auth()
 
 
+        // this.auth.app.database().ref("/USUARIOS/adjhjasdah").once("value")
+        // .then( res => console.log(res))
+        // .catch(err => console.log(err))
 
         // this.OnLogin("ronal2w@gmail.com", "hola123");        
 
         // this.auth.signInWithCustomToken()
 
         this.GetPhotosCamera();
+    }
+
+    OnRegister = (form) =>
+    {
+        console.log(Object.keys(form.fotoPrincipal))
+        this.auth.app.storage().ref("/USUARIOS/borrar").put(form.fotoPrincipal.uri)
+        .then(res => {
+            console.log(res);
+        })
+        .catch(err => {
+            console.log(err)
+        })
     }
 
 
@@ -270,7 +293,7 @@ class Main extends Component {
         const { navigation, auth } = this.props;
         console.log("Auth es: ", auth)
         if (screen == "login") {
-            return <Login openRegister={() => navigation.navigate("Register")} handlePages={this.handlePages} />
+            return <Login OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", {OnRegister: this.OnRegister})} handlePages={this.handlePages} />
         }
         return (
             // <View>
