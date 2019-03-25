@@ -4,24 +4,18 @@ import { Container, Header, Left, Right, Body, Button, Icon, Title } from 'nativ
 import styles from '../styles'
 class HeaderContainer extends Component {
     render() {
-        const { open, showSearcher, openModal } = this.props;
+        const { screen } = this.props;
         return (
             <Header style={styles.header} noShadow>
                 <Left>
-                    <Button transparent onPress={() => open()} >
-                        <Icon style={styles.headerIcon} name="menu" />
-                    </Button>
+                    <Icon name="alpha-l-box" type="MaterialCommunityIcons" style={styles.textWhite} />
                 </Left>
                 <Body >
-                    <Title style={[styles.headerTitle, {marginLeft: showSearcher? 100: 100}]}>Inicio</Title>
+                    <Title style={[styles.headerTitle]}>
+                        {screen}
+                    </Title>
                 </Body>
-                {showSearcher ?
-                    <Right>
-                        <Button transparent onPress={() => openModal()}>
-                            <Icon name="search" style={styles.icons} />
-                        </Button>
-                    </Right> : <Right />
-                }
+                <Right/>
             </Header>
         )
     }

@@ -19,19 +19,19 @@ export default class FooterTabsIconTextExample extends Component {
       <Footer  >
         <FooterTab style={styles.DarkColorBackground}>
 
-          <Button vertical onPress={() => handlePages(SCREENS.option1)} >
+          <Button vertical onPress={() => handlePages(SCREENS.Inicio)} >
             <Icon name="home" type="MaterialCommunityIcons" style={styleOpt5} />
           </Button>
-          <Button vertical onPress={() => handlePages(SCREENS.option2)} >
+          <Button vertical onPress={() => handlePages(SCREENS.Buscar)} >
             <Icon name="magnify" type="MaterialCommunityIcons" style={styleOpt4} />
           </Button>
           <Button vertical onPress={OnCameraOpen} >
             <Icon name="camera" type="MaterialCommunityIcons" style={styleOpt1} />
           </Button>
-          <Button vertical onPress={() => handlePages(SCREENS.option4)} >
+          <Button vertical onPress={() => handlePages(SCREENS.Notificaciones)} >
             <Icon name="heart" type="MaterialCommunityIcons" style={styleOpt3} />
           </Button>
-          <Button vertical onPress={() => handlePages(SCREENS.option5)} >
+          <Button vertical onPress={() => handlePages(SCREENS.Perfil)} >
             <Icon name="account" type="MaterialCommunityIcons" style={styleOpt2} />
           </Button>
 

@@ -43,27 +43,17 @@ const Loading = (props) => {
 const Pages = (props) => {
     const { screen, auth, currentUser, OnChangeProfilePhoto } = props;
     // if (screen != "Inicio") {
-        // return <Container style={styles.main}>            
-        return <Container style={styles.main}>            
-            {screen == SCREENS.Registro && <Register />}
-            {screen == SCREENS.Buscar && <Filtering auth={auth} />}
-            {screen == SCREENS.Inicio && <NewsHome />}
-            {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
-        </Container>
+    // return <Container style={styles.main}>            
+    return <Container style={styles.main}>
+        {screen == SCREENS.Registro && <Register />}
+        {screen == SCREENS.Buscar && <Filtering auth={auth} />}
+        {screen == SCREENS.Inicio && <NewsHome />}
+        {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
+    </Container>
     // }
     return <Text />
 }
 
-const MHeader = (props) => {
-    const { screen, open } = props;
-    if (screen != SCREENS.Login) {
-        return <Header open={open} />
-    }
-    return <Text />
-}
-
-
-//Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
         screen: SCREENS.Buscar,
@@ -79,7 +69,7 @@ class Main extends Component {
         previewVisible: false,
         photos: [],
         currentUser: { ...CURRENTUSER },
-        post: {...POST}
+        post: { ...POST }
     };
 
     async componentDidMount() {
@@ -92,17 +82,17 @@ class Main extends Component {
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
         // console.log("FECHA ES: ", app.database.ServerValue.TIMESTAMP)
-        
+
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
                 // console.log(user.email);
-                
+
                 this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // this.setState({ currentUser: snapshot.val()[UserKey] })
-                        let screen = this.state.screen == SCREENS.Cargando ? SCREENS.Inicio: this.state.screen;
+                        let screen = this.state.screen == SCREENS.Cargando ? SCREENS.Inicio : this.state.screen;
                         this.setState({ currentUser: snapshot.val()[UserKey], screen, loadingUser: false })
                     }
                 })
@@ -202,13 +192,8 @@ class Main extends Component {
     }
 
 
-    handlePages = (page) => {
-        let { screen } = this.state;        
-        this.setState({ loading: false });
-        if (screen != SCREENS.Login) {
-            this.drawer._root.close()
-        }
-        setTimeout(() => this.setState({ screen: page, loading: false }), 300);
+    handlePages = (page) => {                
+        this.setState({ screen: page, loading: false })
     }
 
     GetCameraAccess = async () => {
@@ -240,16 +225,15 @@ class Main extends Component {
         this.setState({ currentUser: user, screen: SCREENS.Inicio });
     }
 
-    StopLoading = () =>
-    {
-        this.setState({loadingUser: false})
+    StopLoading = () => {
+        this.setState({ loadingUser: false })
     }
 
     static navigationOptions = {
         header: null
     }
 
-    
+
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
@@ -264,22 +248,17 @@ class Main extends Component {
             return <LoadingPage />
         }
         return (
-            // <View>
-            <Drawer type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
-                content={<SideBar screen={screen} OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
-                <Container style={styles.main} >
-                    <MHeader screen={screen} open={() => this.drawer._root.open()} />
-                    <StatusBar barStyle="light-content" backgroundColor="#232323" />                    
-                    
-                    {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
-                    <Pages OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
-                    {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
-                    <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
-                    <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
-                    {/* <Loading loading={true}/> */}
-                </Container>
-            </Drawer>
-            // {/* </View> */}
+            <Container style={styles.main} >
+                <Header screen={screen}/>
+                <StatusBar barStyle="light-content" backgroundColor="#232323" />
+
+                {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
+                <Pages OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
+                {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
+                <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
+                <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
+                {/* <Loading loading={true}/> */}
+            </Container>
         )
     }
 
@@ -289,7 +268,7 @@ const AppNavigator = createStackNavigator({
     Home: {
         screen: Main
     },
-    
+
     Register: {
         screen: Register
     }

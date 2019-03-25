@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { ScrollView, Image } from "react-native";
-import { View, List, ListItem, Thumbnail, Text, Item, Input, Icon, Container } from "native-base";
+import { View, List, ListItem, Thumbnail, Text, Item, Input, Icon, Container, Content } from "native-base";
 
 import styles from "../../styles"
 import IconSearch from "../../../assets/icons/user.png"
@@ -64,11 +64,13 @@ class Filtering extends Component {
         return (
             <ScrollView >
                 {/* <Item style={{ borderBottomWidth: 0 }} > */}
-                <Item style={{ borderBottomColor: "gray" }} >
-                    <Icon name="search" style={styles.textWhite} />
-                    <Input value={filterText} placeholder="Buscar" autoCapitalize="none" style={styles.textWhite}
-                        onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
-                </Item>
+                <Content padder>
+                    <Item style={{ borderBottomColor: "gray" }} >
+                        <Icon name="search" style={styles.textWhite} />
+                        <Input value={filterText} placeholder="Buscar" autoCapitalize="none" style={styles.textWhite}
+                            onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
+                    </Item>
+                </Content>
                 {searchedUser && <Profile user={searchedUser} />}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
