@@ -17,7 +17,7 @@ const CardsPhotos = (props) => {
                         </Body>
                     </Left>
                     <Right>
-                        <Button transparent onPress={OnDeletePost} >
+                        <Button transparent onPress={() => OnDeletePost(v.date)} >
                             <Icon name="delete" style={{color: "gray"}} type="MaterialCommunityIcons" />
                         </Button>
                     </Right>
@@ -51,11 +51,12 @@ const CardsPhotos = (props) => {
 }
 
 
-class Posts extends Component {
+class Posts extends Component {    
+
     render() {
-        const { data } = this.props;
+        const { data, OnDeletePost } = this.props;
         return (
-            <CardsPhotos data={data} />
+            <CardsPhotos data={data} OnDeletePost={OnDeletePost} />
         )
     }
 }

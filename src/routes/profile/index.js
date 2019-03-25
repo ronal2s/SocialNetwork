@@ -1,15 +1,16 @@
 import React, { Component } from "react";
 import { Text, Spinner, Grid, Col, Row, Button } from "native-base";
-import { ScrollView, Image, TouchableOpacity, View } from "react-native";
+import { ScrollView, Image, TouchableOpacity, View, Alert } from "react-native";
 import Modal from "react-native-modal";
-import { DEFAULTPHOTO } from "../../const";
+import { DEFAULTPHOTO, DATAMODAL } from "../../const";
 import styles from "../../styles";
 import Posts from "../../components/posts";
+
+
 
 const ProfileHeader = (props) => {
     const { currentUser, OnChangeProfilePhoto, OnModalOpen } = props;
     const image = currentUser.mainPhoto == "" ? DEFAULTPHOTO : { uri: currentUser.mainPhoto }
-    console.log(currentUser)
     return (
         <Grid>
             <Row>
@@ -23,21 +24,21 @@ const ProfileHeader = (props) => {
                         <Col>
                             <TouchableOpacity>
                                 <Text style={[styles.textWhite, { textAlign: "center" }]} >
-                                    {`1360\nMe gustas`}
+                                    {`${currentUser.requests}\nSolicitudes`}
                                 </Text>
                             </TouchableOpacity>
                         </Col>
                         <Col>
                             <TouchableOpacity>
                                 <Text style={[styles.textWhite, { textAlign: "center" }]} >
-                                    {`248\nPost`}
+                                    {`${currentUser.posts}\nPost`}
                                 </Text>
                             </TouchableOpacity>
                         </Col>
                         <Col >
                             <TouchableOpacity>
                                 <Text style={[styles.textWhite, { textAlign: "center" }]} >
-                                    {`628\nAmigos`}
+                                    {`${currentUser.friends}\nAmigos`}
                                 </Text>
                             </TouchableOpacity>
                         </Col>
@@ -56,20 +57,23 @@ const ProfileHeader = (props) => {
 }
 
 const ModalPhoto = (props) => {
-    const { open, currentUser, OnCloseModal, OnChangeProfilePhoto, OnDeletePhoto } = props;
+    const { open, currentUser, OnCloseModal, dataModal } = props;
+    const textColor1 = dataModal.buttonText1Color == ""? "#232323": dataModal.buttonText1Color;
+    const textColor2 = dataModal.buttonText2Color == ""? "#232323": dataModal.buttonText2Color;
+    console.log(dataModal)
     return (
         <Modal isVisible={open} style={{ justifyContent: "flex-end", margin: 0 }} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModal} swipeDirection="right" onSwipe={OnCloseModal} onBackdropPress={OnCloseModal}>
             {/* <View styles={[styles.modal, {flex: 0.5}]}> */}
             <View style={styles.modalViewBottom} >
-                <TouchableOpacity style={{ paddingBottom: 10 }} onPress={OnChangeProfilePhoto} >
-                    <Text style={styles.textDark}>
-                        NUEVA FOTO
+                <TouchableOpacity style={{ paddingBottom: 10 }} onPress={dataModal.OnPressButton1} >
+                    <Text style={{color: textColor1}}>
+                        {dataModal.buttonText1.toUpperCase()}
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={OnDeletePhoto} >
-                    <Text style={styles.textDark}>
-                        ELIMINAR ACTUAL
+                <TouchableOpacity onPress={dataModal.OnPressButton2} >
+                    <Text style={{color: textColor2}}>
+                        {dataModal.buttonText2.toUpperCase()}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -82,7 +86,7 @@ const ModalPhoto = (props) => {
 class Profile extends Component {
     state =
         {
-            posts: [],
+            posts: [], dataModal: { ...DATAMODAL},
             loading: true,
             modalPhoto: false
         }
@@ -109,52 +113,100 @@ class Profile extends Component {
         })
     }
 
+    OnDeletePostAlert = (date) => {
+        let { dataModal } = this.state;
+        dataModal.buttonText1 = "eliminar";
+        dataModal.buttonText2 = "cancelar";
+        dataModal.buttonText1Color = "red";
+        dataModal.OnPressButton1 = () => this.OnDeletePost(date);
+        dataModal.OnPressButton2 = () => this.OnCloseModal();
+        this.setState({ dataModal, modalPhoto: true });
+
+    }
+    
+    OnPressPhotoProfile = () => {
+        let { dataModal } = this.state;
+        dataModal.buttonText1 = "Nueva foto";
+        dataModal.buttonText2 = "Eliminar";
+        dataModal.buttonText2Color = "red";
+        dataModal.OnPressButton1 = () => this.OnChangePhoto();
+        dataModal.OnPressButton2 = () => this.OnDeletePhoto();
+        this.setState({ dataModal, modalPhoto: true });
+
+    }
+
     OnDeletePhoto = async () => {
         let { auth, currentUser } = this.props;
-        currentUser.mainPhoto = "";
         //Eliminando la foto del usuario
-        auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser, (err) => {
-            if(!err)
-            {
-                this.handleModal();
-                //Eliminando la foto del almacenamiento
-                auth.app.storage().ref("/USUARIOS").child(currentUser.user).delete()
-                .then(res => {
-                    console.log("Eliminado del almacenamiento");
-                }) 
-                .catch(err => {
-                    console.log(err);
-                    alert("Ha ocurrido un error")
-                })
-            } else
-            {
-                console.log(err)
+        if(currentUser.mainPhoto != "")
+        {
+            currentUser.mainPhoto = "";
+            auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser, async (err) => {
+                if (!err) {
+                    this.OnCloseModal();
+                    //Eliminando la foto del almacenamiento
+                    await auth.app.storage().ref("/USUARIOS").child(currentUser.user).delete()
+                        .then(res => {
+                            console.log("Eliminado del almacenamiento");
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            alert("Ha ocurrido un error")
+                        })
+                } else {
+                    console.log(err)
+                    alert("Ha ocurrido un error");
+                }
+            })
+        }
+    }
+
+    handleModal = (dataModal) => {
+        let { modalPhoto } = this.state;
+        modalPhoto = !modalPhoto
+        this.setState({ modalPhoto, dataModal })
+    }
+
+    OnChangePhoto = () => {
+        this.setState({ modalPhoto: false, dataModal: {...DATAMODAL} }, () => this.props.OnChangeProfilePhoto())
+    }
+
+    OnDeletePost = async (date) => {
+        const { auth, currentUser } = this.props;
+        // this.setState({modalPhoto: false})
+        this.OnCloseModal();
+        auth.app.database().ref("/POSTS").child(currentUser.user).child(date).remove(async err => {
+            if (!err) {
+                await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
+                    .then(res => {
+                        //ACTUALIZANDO INFO DEL USUARIO
+                        currentUser.posts -= 1;
+                        auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        alert("Ha ocurrido un error");
+                    })
+            } else {
                 alert("Ha ocurrido un error");
             }
         })
     }
 
-    handleModal = () => {
-        let { modalPhoto } = this.state;
-        modalPhoto = !modalPhoto
-        this.setState({ modalPhoto })
-    }
-
-    OnChangePhoto = () => {
-        this.setState({modalPhoto: false}, () => this.props.OnChangeProfilePhoto())
+    OnCloseModal = () => {
+        this.setState({ modalPhoto: false, dataModal: {...DATAMODAL}});
     }
 
     render() {
         const { auth, currentUser, OnChangeProfilePhoto } = this.props;
-        const { posts, loading, modalPhoto } = this.state;
-        console.log("USUARIO ES: ", currentUser)
+        const { posts, loading, modalPhoto, dataModal } = this.state;
         return (
 
             <ScrollView>
-                <ProfileHeader currentUser={currentUser} OnModalOpen={this.handleModal} />
+                <ProfileHeader currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} />
                 {loading && <Spinner color="white" />}
-                <Posts data={posts} />
-                <ModalPhoto open={modalPhoto} OnCloseModal={this.handleModal} OnChangeProfilePhoto={this.OnChangePhoto} OnDeletePhoto={this.OnDeletePhoto} />
+                <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
+                <ModalPhoto open={modalPhoto} OnCloseModal={this.OnCloseModal} dataModal={dataModal} />
             </ScrollView>
 
         )

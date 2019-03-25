@@ -28,7 +28,7 @@ class Preview extends PureComponent {
         const { currentUser, auth, imageURL } = this.props;
         const { post, description, uploadingPost } = this.state;
         const actualDate = 0 - new Date();
-        const userPost = `${currentUser.user}-${actualDate}`;
+        const userPost = `${currentUser.user}-${actualDate}`;//En la data va a aparecer ronal2s--123112131
         this.setState({ uploadingPost: true });
         if (!uploadingPost) {
             GetBlob(imageURL.uri)
@@ -49,6 +49,9 @@ class Preview extends PureComponent {
                                     this.setState({ uploadingPost: false, description: "" }, () => {
                                         this.props.OnCloseModal();
                                     });
+                                    //Actualizar el numero de post del usuario
+                                    currentUser.posts += 1;
+                                    auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser);
                                     
                                 } else {
                                     console.log(err);

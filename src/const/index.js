@@ -8,12 +8,23 @@ const CONFIG = {
 };
 
 const DEFAULTPHOTO = require("../../assets/icons/user.png")
-
+const DATAMODAL = { buttonText1: "", buttonText2: "", buttonText2Color: "", buttonText1Color: "", OnPressButton1: null, OnPressButton2: null };
 const CURRENTUSER = {
     email: "",
     mainPhoto: "",
-    user: ""
+    user: "",
+    likes: 0, //numerico
+    friends: 0, //numero
+    posts: 0,
+    requests: [],//Array de objetos de usuarios
 }
+
+// const FOLLOWERS =
+//     [
+//         user1,
+//         user2
+//     ]
+
 
 const user = {
     // uid: "",
@@ -42,10 +53,10 @@ const user = {
 }
 
 const POST = {
-    user:"",
+    user: "",
     photo: "",
-    description:"",
-    date:"",//Fecha completa, es decir + new Date()
+    description: "",
+    date: "",//Fecha completa, es decir + new Date()
     // likes: 
     // [
     //     {usuario: ""}
@@ -68,8 +79,7 @@ const verifyEmail = (value) => {
     return false;
 }
 
-async function GetBlob(photo)  
-{
+async function GetBlob(photo) {
     const blob = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.onload = function () {
@@ -87,4 +97,4 @@ async function GetBlob(photo)
 }
 
 
-export { CONFIG, DEFAULTPHOTO, user, CURRENTUSER, POST, verifyEmail, GetBlob }
+export { CONFIG, DEFAULTPHOTO, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }

@@ -96,17 +96,24 @@ class Main extends Component {
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
         app.initializeApp(CONFIG);
         this.auth = app.auth()
+        //VERIFICAR LA FECHA ONLINE PARA VER SI ES CORRECTA, SI NO LO ES NO DEJAR ENTRAR A LOS USUARIOS
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
-
+        // console.log("FECHA ES: ", app.database.ServerValue.TIMESTAMP)
+        console.log("FECHA ES: ", app.database.ServerValue)
+        
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
                 console.log(user.email);
-                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).once("value", (snapshot) => {
+                
+                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
-                        this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio", loadingUser: false })
+                        // this.setState({ currentUser: snapshot.val()[UserKey] })
+                        let screen = this.state.screen == "loading" ? "Inicio": this.state.screen;
+                        console.log(screen)
+                        this.setState({ currentUser: snapshot.val()[UserKey], screen, loadingUser: false })
                     }
                 })
             } else {
@@ -257,6 +264,7 @@ class Main extends Component {
         header: null
     }
 
+    
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
