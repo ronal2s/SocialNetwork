@@ -236,7 +236,7 @@ class Main extends Component {
 
     OnCameraOpen = async () => {
         // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})
-        await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], base64: true })
+        await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], base64: true, mediaTypes: "Images", quality: 0.5 })
             .then(res => {
                 // console.log(res);
                 if (!res.cancelled) {

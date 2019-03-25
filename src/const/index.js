@@ -21,19 +21,21 @@ const user = {
     fotoPrincipal: "",
     correo: "",
     seguidores: [],
+    solicitudes: [],
     fotos: [],
     likes: [], //A quien mis fotos le gustan
-    mensajes:
-        [
-            {
-                usuario: "",
-                mensajes:
-                {
-                    yo: "",
-                    tu: ""
-                }
-            }
-        ]
+    mensajes: []
+    // mensajes:
+    //     [
+    //         {
+    //             usuario: "",
+    //             mensajes:
+    //             {
+    //                 yo: "",
+    //                 tu: ""
+    //             }
+    //         }
+    //     ]
 
 }
 

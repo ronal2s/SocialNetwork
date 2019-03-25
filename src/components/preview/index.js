@@ -4,7 +4,7 @@ import { Image, StyleSheet } from "react-native"
 import { Button, View, Text, Item, Content, Form, Textarea, Spinner } from "native-base"
 import { POST, GetBlob } from "../../const"
 import styles from "../../styles"
-
+const MaxChars = 200;
 class Preview extends PureComponent {
     state =
         {
@@ -15,8 +15,11 @@ class Preview extends PureComponent {
 
     HandleDescription = (value: string) => {
         let { description } = this.state;
-        description = value;
-        this.setState({ description })
+        if(description.length < MaxChars)
+        {
+            description = value;
+            this.setState({ description })
+        }
     }
 
 
@@ -24,7 +27,7 @@ class Preview extends PureComponent {
     OnPost = async () => {
         const { currentUser, auth, imageURL } = this.props;
         const { post, description, uploadingPost } = this.state;
-        const actualDate = + new Date();
+        const actualDate = 0 - new Date();
         const userPost = `${currentUser.usuario}-${actualDate}`;
         this.setState({ uploadingPost: true });
         if (!uploadingPost) {
@@ -43,8 +46,10 @@ class Preview extends PureComponent {
                             refUser.set(post, (err) => {
                                 if (!err) {
                                     //Parar el loading, alerta de que se envió, cerrar el preview
-                                    this.setState({ uploadingPost: false });
-                                    alert("Completo")
+                                    this.setState({ uploadingPost: false, description: "" }, () => {
+                                        this.props.OnCloseModal();
+                                    });
+                                    
                                 } else {
                                     console.log(err);
                                     alert("Ha ocurrido un error");
@@ -79,8 +84,11 @@ class Preview extends PureComponent {
                     {/* <Image source={{ uri: `data:image/png;base64, ${imageURL}` }} style={{flex: 1, width: null,height: null}} /> */}
                     <Image source={imageURL} style={{ flex: 1, width: null, height: null }} />
                     {/* <Content padder> */}
+                    <Text>
+                        {`Caráceteres restantes: ${MaxChars - description.length}`}
+                    </Text>
                     <Form>
-                        <Textarea bordered placeholder="Descripción" rowSpan={3} onChangeText={this.HandleDescription} />
+                        <Textarea bordered value={description} placeholder="Descripción" rowSpan={3} onChangeText={this.HandleDescription} />
                     </Form>
                     {/* </Content> */}
                     <Button block style={[styles.buttonPrimary, { marginTop: 5 }]} onPress={this.OnPost} >
