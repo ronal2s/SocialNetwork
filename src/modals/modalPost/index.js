@@ -45,13 +45,15 @@ class Preview extends PureComponent {
                             post.description = description;
                             refUser.set(post, (err) => {
                                 if (!err) {
-                                    //Parar el loading, alerta de que se envió, cerrar el preview
-                                    this.setState({ uploadingPost: false, description: "" }, () => {
-                                        this.props.OnCloseModal();
-                                    });
                                     //Actualizar el numero de post del usuario
                                     currentUser.posts += 1;
-                                    auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser);
+                                    auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser, (err) => {
+                                        //Parar el loading, alerta de que se envió, cerrar el preview
+                                        this.setState({ uploadingPost: false, description: "" }, () => {
+                                            this.props.OnCloseModal();
+                                        });
+
+                                    });
                                     
                                 } else {
                                     console.log(err);

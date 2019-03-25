@@ -27,6 +27,7 @@ class Filtering extends Component {
     state =
         {
             searchedUser: null,
+            lastPosts: [],
             filterText: ""
         }
 
@@ -40,8 +41,22 @@ class Filtering extends Component {
                 let key = Object.keys(snapshot.val())[0];
                 console.log(key)
                 searchedUser = snapshot.val()[key]
-                // console.log("USUARIO: ", searchedUser[key]);
-                console.log("USUARIO: ", searchedUser);
+                //Tener los ultimos posts
+                auth.app.database().ref("/POSTS").child(key).orderByChild("date").limitToFirst(5).once("value", (snapshot) => {
+                    if (snapshot.exists()) {
+                        console.log("DAIRY TIENE POSTS");
+                        console.log(snapshot.val())
+                        //Convirtiendo sus ultimos post en arrays
+                        let dataFirebase = [];
+                        var newItem = null;
+                        snapshot.forEach(item => {
+                            newItem = item.val();
+                            dataFirebase.push(newItem)
+                        });
+                        this.setState({lastPosts: dataFirebase})
+                    }
+                })
+                //Verificar si somos amigos o no
             } else {
                 searchedUser = null;
             }
@@ -49,6 +64,8 @@ class Filtering extends Component {
         })
 
     }
+
+    //Crear método que diga si este user + el nuevo son amigos o no
 
     handleText = (value) => {
         let { filterText, searchedUser } = this.state;
@@ -59,7 +76,7 @@ class Filtering extends Component {
 
     render() {
         const { auth } = this.props;
-        const { searchedUser, filterText } = this.state;
+        const { searchedUser, filterText, lastPosts } = this.state;
         console.log(searchedUser)
         return (
             <ScrollView >
@@ -71,7 +88,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile user={searchedUser} />}
+                {searchedUser && <Profile user={searchedUser} lastPosts={lastPosts}/>}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
         )

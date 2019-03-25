@@ -82,7 +82,6 @@ class Main extends Component {
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
         // console.log("FECHA ES: ", app.database.ServerValue.TIMESTAMP)
-
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
