@@ -13,7 +13,8 @@ import { CONFIG, CURRENTUSER, POST, GetBlob } from "../const"
 import Header from '../header'
 import SideBar from '../sidebar'
 import BottomNav from '../components/bottomnav'
-import Employees from '../routes/employees'
+
+import Profile from '../routes/profile'
 import Register from '../routes/register'
 import Mynunus from '../routes/init'
 import Login from '../routes/login'
@@ -50,11 +51,11 @@ const Home = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, isCameraOpen } = props;
-    if (screen != "Inicio" && !isCameraOpen) {
-        return <Container style={styles.main}>
-            {screen == "employees" && <Employees />}
+    const { screen, auth, currentUser } = props;
+    if (screen != "Inicio") {
+        return <Container style={styles.main}>            
             {screen == "register" && <Register />}
+            {screen == "profile" && <Profile auth={auth} currentUser={currentUser} />}
         </Container>
     }
     return <Text />
@@ -212,7 +213,6 @@ class Main extends Component {
         let { showSearcher, screen } = this.state;
         switch (page) {
             case "Inicio": showSearcher = false; break;
-            case "employees": showSearcher = true; break;
             case "login": showSearcher = false; break;
 
         }
@@ -277,9 +277,10 @@ class Main extends Component {
                     <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />                    
                     
-                    <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} />
+                    {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
+                    <Pages open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
                     <Home loading={loading} screen={screen} handlePages={this.handlePages} />
-                    <BottomNav page={screen} OnCameraOpen={this.OnCameraOpen} />
+                    <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                     <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
                     {/* <Loading loading={true}/> */}
                 </Container>
@@ -294,9 +295,7 @@ const AppNavigator = createStackNavigator({
     Home: {
         screen: Main
     },
-    Prueba: {
-        screen: Employees
-    },
+    
     Register: {
         screen: Register
     }
