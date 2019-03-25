@@ -117,9 +117,9 @@ export default StyleSheet.create({
         alignItems: "center"
     },
     SidebarProfileThumbnail: {
-        width: 150,
-        height: 150,
-        borderRadius: 150 / 2,
+        width: 100,
+        height: 100,
+        borderRadius: 100 / 2,
         borderColor: "white",
         borderWidth: 2
     },
@@ -132,18 +132,26 @@ export default StyleSheet.create({
         borderRadius: 10,
         padding: 22
     },
+    modalViewBottom: {
+        backgroundColor: "white",
+        padding: 22,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 4,
+        borderColor: "rgba(0, 0, 0, 0.1)",
+    },
     modalTitles: {
         fontWeight: "bold",
         fontSize: 22,
         textAlign: "center",
         color: "#232323"
-    },    
+    },
     buttonPrimary: {
-        backgroundColor: "#232323", 
+        backgroundColor: "#232323",
         borderColor: "#232323"
-    },  
+    },
     buttonSecondary: {
-        backgroundColor: "white", 
+        backgroundColor: "white",
         borderColor: "#232323"
     },
 
@@ -163,7 +171,7 @@ export default StyleSheet.create({
         color: "gray",
         // backgroundColor: "white"////
     },
-    ButtonSelected: {        
+    ButtonSelected: {
         backgroundColor: "#ff867c"
     },
     divider: {
@@ -181,7 +189,7 @@ export default StyleSheet.create({
         color: "gray"
     },
     listItemUnselected: {
-        borderBottomWidth:0
+        borderBottomWidth: 0
     },
     DarkColorBackground: {
         backgroundColor: "#282828"

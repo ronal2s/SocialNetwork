@@ -34,7 +34,7 @@ class Main extends Component {
                     </View>
                     <Form >
                         <Item rounded bordered style={styles.loginFormItems} >
-                            <Input autoCapitalize="none" keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.refs.inputClave._root.focus()} placeholder="Usuario" onChangeText={(text) => this.handleText("name", text)} />
+                            <Input autoCapitalize="none" keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.refs.inputClave._root.focus()} placeholder="Correo" onChangeText={(text) => this.handleText("name", text)} />
                         </Item>
                         <Item rounded bordered style={styles.loginFormItems}>
                             <Input autoCapitalize="none" ref="inputClave" secureTextEntry placeholder="Contraseña" onChangeText={(text) => this.handleText("password", text)} />

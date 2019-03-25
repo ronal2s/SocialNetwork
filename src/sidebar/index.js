@@ -20,14 +20,14 @@ const MyListItem = (globalProps) => {
 class SideBar extends Component {
     render() {
         const { handlePages, screen, currentUser, OnChangeProfilePhoto, isUploadingPhoto, OnLogout } = this.props;
-        const ProfileImg = currentUser.fotoPrincipal == "" ? DefaultPhoto : { uri: currentUser.fotoPrincipal };
+        const ProfileImg = currentUser.mainPhoto == "" ? DefaultPhoto : { uri: currentUser.mainPhoto };
         return <Container style={[styles.SidebarBkg, { flex: 1 }]} >
             <View style={styles.SidebarProfileView} >
                 <TouchableOpacity onPress={OnChangeProfilePhoto}>
                     <Thumbnail style={[styles.SidebarProfileThumbnail]} source={ProfileImg} />
                 </TouchableOpacity>
                 <Text style={styles.SidebarProfileLabel}>
-                    {currentUser.usuario.toUpperCase()}
+                    {currentUser.user.toUpperCase()}
                 </Text>
                 {isUploadingPhoto && <Spinner color="white" />}
                 {/* <Text note style={{color: "white"}} >Billetera RD$: 3,500.00</Text> */}

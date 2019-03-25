@@ -7,22 +7,24 @@ const CONFIG = {
     messagingSenderId: "643282533725"
 };
 
+const DEFAULTPHOTO = require("../../assets/icons/user.png")
+
 const CURRENTUSER = {
-    correo: "",
-    fotoPrincipal: "",
-    usuario: ""
+    email: "",
+    mainPhoto: "",
+    user: ""
 }
 
 const user = {
     // uid: "",
-    usuario: "",
-    clave: "",
-    clave2: "",
-    fotoPrincipal: "",
-    correo: "",
-    seguidores: [],
-    solicitudes: [],
-    fotos: [],
+    user: "",
+    pass1: "",
+    pass2: "",
+    mainPhoto: "",
+    email: "",
+    followers: [],
+    requests: [],
+    // fotos: [],
     likes: [], //A quien mis fotos le gustan
     mensajes: []
     // mensajes:
@@ -85,4 +87,4 @@ async function GetBlob(photo)
 }
 
 
-export { CONFIG, user, CURRENTUSER, POST, verifyEmail, GetBlob }
+export { CONFIG, DEFAULTPHOTO, user, CURRENTUSER, POST, verifyEmail, GetBlob }

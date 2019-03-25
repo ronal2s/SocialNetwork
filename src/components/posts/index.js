@@ -3,9 +3,8 @@ import { Image } from "react-native"
 import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner } from "native-base"
 import DefaultLoading from "../../../assets/loading2.gif"
 const CardsPhotos = (props) => {
-    const { data } = props;
+    const { data, OnDeletePost, currentUser } = props;
     return data.map((v, i) => {
-        console.log("QUE LO QUE PAZAAAAAA", v)
         return (
             <Card transparent key={i} >
                 <CardItem style={{ backgroundColor: "#282828" }}>
@@ -17,13 +16,18 @@ const CardsPhotos = (props) => {
                             </Text>
                         </Body>
                     </Left>
+                    <Right>
+                        <Button transparent onPress={OnDeletePost} >
+                            <Icon name="delete" style={{color: "gray"}} type="MaterialCommunityIcons" />
+                        </Button>
+                    </Right>
                 </CardItem >
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Image source={{ uri: v.photo }} style={{ width: "100%", height: 300, }} 
                     // loadingIndicatorSource={DefaultLoading}
-                    loadingIndicatorSource={<Spinner color="white"/>}
-                    />
-                    
+                    progressiveRenderingEnabled={true}
+                    // loadingIndicatorSource={<Spinner color="white"/>}
+                    />                    
                 </CardItem>
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Text note>

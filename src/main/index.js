@@ -19,7 +19,7 @@ import Register from '../routes/register'
 import Mynunus from '../routes/init'
 import Login from '../routes/login'
 import LoadingPage from '../routes/loading'
-import PreviewPhoto from '../components/preview'
+import ModalPost from '../modals/modalPost'
 import styles from '../styles'
 // import { isNullOrUndefined } from 'util';
 
@@ -51,11 +51,11 @@ const Home = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, auth, currentUser } = props;
+    const { screen, auth, currentUser, OnChangeProfilePhoto } = props;
     if (screen != "Inicio") {
         return <Container style={styles.main}>            
             {screen == "register" && <Register />}
-            {screen == "profile" && <Profile auth={auth} currentUser={currentUser} />}
+            {screen == "profile" && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
         </Container>
     }
     return <Text />
@@ -103,7 +103,7 @@ class Main extends Component {
             if (user) {
                 this.setState({ loadingUser: true })
                 console.log(user.email);
-                this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(user.email).once("value", (snapshot) => {
+                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         this.setState({ currentUser: snapshot.val()[UserKey], screen: "Inicio", loadingUser: false })
@@ -115,32 +115,28 @@ class Main extends Component {
         })
     }
 
-
-
-
-
     OnChangeProfilePhoto = async () => {
         // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})        
-        await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], base64: true })
+        await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], base64: true, quality: 0.5 })
             .then(async (res) => {
                 // console.log(res);
                 if (!res.cancelled) {
                     this.setState({ isUploadingPhoto: true });
                     let { currentUser } = this.state;
-                    currentUser.fotoPrincipal = res;
+                    currentUser.mainPhoto = res;
                     //CREANDO BLOB 
-                    GetBlob(currentUser.fotoPrincipal.uri)
+                    GetBlob(currentUser.mainPhoto.uri)
                         .then(async blob => {
                             //SUBIR IMAGEN
-                            const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.usuario);
+                            const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.user);
                             const refUsuario = this.auth.app.database().ref("/USUARIOS");
                             const snapshot = await refFoto.put(blob);
                             blob.close();
                             snapshot.ref.getDownloadURL()
                                 .then(url => {
-                                    currentUser.fotoPrincipal = url;
+                                    currentUser.mainPhoto = url;
                                     //ACTUALIZAR DATA
-                                    refUsuario.child(currentUser.usuario).set(currentUser, (err) => {
+                                    refUsuario.child(currentUser.user).set(currentUser, (err) => {
                                         console.log(err)
                                         if (!err) {
                                             this.setState({ currentUser, isUploadingPhoto: false })
@@ -177,7 +173,7 @@ class Main extends Component {
                 // console.log(res.user.email);
                 //Obtener datos del usuario
                 AsyncStorage.setItem("uid", res.user.uid);
-                this.auth.app.database().ref("/USUARIOS").orderByChild("correo").equalTo(res.user.email).once("value", (snapshot) => {
+                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(res.user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // console.log(snapshot.val()[UserKey])
@@ -252,6 +248,11 @@ class Main extends Component {
         this.setState({ currentUser: user, screen: "Inicio" });
     }
 
+    StopLoading = () =>
+    {
+        this.setState({loadingUser: false})
+    }
+
     static navigationOptions = {
         header: null
     }
@@ -264,7 +265,7 @@ class Main extends Component {
         const { navigation, auth } = this.props;
         // console.log("USUARIO ES: ", currentUser)
         if (screen == "login") {
-            return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth })} handlePages={this.handlePages} />
+            return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth, StopLoading: this.StopLoading })} handlePages={this.handlePages} />
         }
         if (screen == "loading") {
             return <LoadingPage />
@@ -278,10 +279,10 @@ class Main extends Component {
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />                    
                     
                     {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
-                    <Pages open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
+                    <Pages OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
                     <Home loading={loading} screen={screen} handlePages={this.handlePages} />
                     <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
-                    <PreviewPhoto open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
+                    <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
                     {/* <Loading loading={true}/> */}
                 </Container>
             </Drawer>

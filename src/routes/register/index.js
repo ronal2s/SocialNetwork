@@ -73,16 +73,16 @@ export class Page44 extends Component {
                 </TouchableOpacity>
                 {/* </ListItem> */}
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputUsuario")} onChangeText={(text) => handleForm("correo", text)} placeholder="Correo" autoCapitalize="none" />
+                    <Input keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputUsuario")} onChangeText={(text) => handleForm("email", text)} placeholder="Correo" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")} onChangeText={(text) => handleForm("usuario", text)} placeholder="Usuario" autoCapitalize="none" />
+                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")} onChangeText={(text) => handleForm("user", text)} placeholder="Usuario" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("clave", text)} placeholder="Clave" autoCapitalize="none" />
+                    <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("pass1", text)} placeholder="Clave" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputClave2" returnKeyType="next" onSubmitEditing={OnRegister} secureTextEntry onChangeText={(text) => handleForm("clave2", text)} placeholder="Confirmar clave" autoCapitalize="none" />
+                    <Input ref="inputClave2" returnKeyType="next" onSubmitEditing={OnRegister} secureTextEntry onChangeText={(text) => handleForm("pass2", text)} placeholder="Confirmar clave" autoCapitalize="none" />
                 </Item>
 
                 <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block onPress={OnRegister} >
@@ -113,49 +113,52 @@ class Register extends Component {
         // console.log(form)
         this.setState({ uploadingData: true });
         //VALIDANDO FORMULARIO GENERAL
-        if ((form.usuario.length >= 6)) {
+        console.log(form)
+        if ((form.user.length > 6)) {
             //USAR FUNCION DE VALIDAR CORREO REAL
-            if (verifyEmail(form.correo)) {
-                if (form.clave.length >= 6) {
-                    if (form.clave == form.clave2) {
+            if (verifyEmail(form.email)) {
+                if (form.pass1.length >= 6) {
+                    if (form.pass1 == form.pass2) {
                         //Todo validado
 
 
                         //VERIFICAR SI EL CORREO EXISTE
                         const refUsuario = auth.app.database().ref("/USUARIOS");
                         //VERIFICANDO SI EL CORREO EXISTE
-                        refUsuario.orderByChild("correo").equalTo(form.correo).once("value", (snapshot) => {
+                        refUsuario.orderByChild("email").equalTo(form.email).once("value", (snapshot) => {
                             if (snapshot.exists()) {
                                 alert("Este correo ya ha sido registrado");
                                 this.setState({ uploadingData: false });
                             } else {
                                 //VERIFICANDO SI EL USUARIO EXISTE
-                                refUsuario.orderByChild("usuario").equalTo(form.usuario).once("value", async (snapshot) => {
+                                refUsuario.orderByChild("user").equalTo(form.user).once("value", async (snapshot) => {
                                     if (snapshot.exists()) {
                                         alert("Este usuario ya ha sido registrado");
                                         this.setState({ uploadingData: false });
                                     } else {
                                         //SI NO EXISTE, SUBIR LA FOTO SI EXISTE
-                                        if (Object.keys(form.fotoPrincipal).length > 0) {
-                                            GetBlob(form.fotoPrincipal.uri)
+                                        if (Object.keys(form.mainPhoto).length > 0) {
+                                            GetBlob(form.mainPhoto.uri)
                                                 .then(async blob => {
-                                                    const refFoto = auth.app.storage().ref("/USUARIOS").child(form.usuario);
+                                                    const refFoto = auth.app.storage().ref("/USUARIOS").child(form.user);
                                                     const snapshot = await refFoto.put(blob);
                                                     blob.close();
                                                     snapshot.ref.getDownloadURL()
                                                         .then(url => {
-                                                            form.fotoPrincipal = url;                                                            
+                                                            form.mainPhoto = url;                                                            
                                                             //SUBIR DATA
-                                                            auth.createUserWithEmailAndPassword(form.correo, form.clave)
+                                                            auth.createUserWithEmailAndPassword(form.email, form.pass1)
                                                             .then(res => {
                                                                 console.log(res);
-                                                                delete form.clave;
-                                                                delete form.clave2;
-                                                                refUsuario.child(form.usuario).set(form, (err) => {
+                                                                delete form.pass1;
+                                                                delete form.pass2;
+                                                                refUsuario.child(form.user).set(form, (err) => {
                                                                     console.log(err)
                                                                     if (!err) {
                                                                         alert("Usuario registrado");
+                                                                        this.props.StopLoading();
                                                                         this.props.navigation.goBack();
+
                                                                     } else {
                                                                         alert("Ha ocurrido un error");
                                                                         this.setState({ uploadingData: false });
@@ -176,11 +179,11 @@ class Register extends Component {
                                         }
                                         else {
                                             //SI NO HAY FOTO, SE SUBE SIN FOTO
-                                            auth.createUserWithEmailAndPassword(form.correo, form.clave)
+                                            auth.createUserWithEmailAndPassword(form.email, form.pass1)
                                             .then(res => {
-                                                delete form.clave;
-                                                delete form.clave2;
-                                                refUsuario.child(form.usuario).set(form, (err) => {
+                                                delete form.pass1;
+                                                delete form.pass2;
+                                                refUsuario.child(form.user).set(form, (err) => {
                                                     if (!err) {
                                                         //INICIAR SESIÓN CON EL NUEVO USUARIO
                                                         alert("Usuario registrado");
@@ -242,7 +245,7 @@ class Register extends Component {
                 // console.log(res);
                 if (!res.cancelled) {
                     let { form } = this.state;
-                    form.fotoPrincipal = res
+                    form.mainPhoto = res
                     this.setState({ form })
                 }
             })
@@ -262,7 +265,7 @@ class Register extends Component {
         const { form, uploadingData } = this.state;
         const OnRegister = navigation.getParam("OnRegister", () => alert("Not working"));
         const auth = navigation.getParam("auth");
-        const fotoPrincipal = form.fotoPrincipal == "" ? IconDefault : form.fotoPrincipal;
+        const fotoPrincipal = form.mainPhoto == "" ? IconDefault : form.mainPhoto;
         return (
             <Stepper
                 ref={(ref: any) => {

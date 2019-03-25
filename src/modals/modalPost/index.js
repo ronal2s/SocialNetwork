@@ -28,19 +28,19 @@ class Preview extends PureComponent {
         const { currentUser, auth, imageURL } = this.props;
         const { post, description, uploadingPost } = this.state;
         const actualDate = 0 - new Date();
-        const userPost = `${currentUser.usuario}-${actualDate}`;
+        const userPost = `${currentUser.user}-${actualDate}`;
         this.setState({ uploadingPost: true });
         if (!uploadingPost) {
             GetBlob(imageURL.uri)
                 .then(async blob => {
                     const refPhoto = auth.app.storage().ref("/POSTS").child(userPost);
-                    const refUser = auth.app.database().ref("/POSTS").child(currentUser.usuario).child(actualDate);
+                    const refUser = auth.app.database().ref("/POSTS").child(currentUser.user).child(actualDate);
                     const snapshot = await refPhoto.put(blob);
                     blob.close();
                     snapshot.ref.getDownloadURL()
                         .then(url => {
                             post.photo = url;
-                            post.user = currentUser.usuario;
+                            post.user = currentUser.user;
                             post.date = actualDate;
                             post.description = description;
                             refUser.set(post, (err) => {
