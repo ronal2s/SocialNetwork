@@ -3,6 +3,9 @@ import { Image, StyleSheet, View, Animated } from 'react-native'
 import { DeckSwiper, Card, CardItem, Thumbnail, Text, Left, Right, Body, Button, Icon, Container } from 'native-base'
 import iconBoy from '../../../assets/icons/boy.png'
 import styles from '../../styles'
+import SCREEN_IMPORT from 'Dimensions'
+
+const SCREEN_WIDTH = SCREEN_IMPORT.get('window').width;
 
 const CardsPhotos = (props) => {
     const { data } = props;
@@ -17,8 +20,8 @@ const CardsPhotos = (props) => {
                         </Body>
                     </Left>
                 </CardItem >
-                <CardItem style={{ backgroundColor: "#282828" }}>
-                    <Image source={{ uri: "https://concepto.de/wp-content/uploads/2015/03/paisaje-2-e1549600987975.jpg" }} style={{ width: "100%", height: 300, }} />
+                <CardItem cardBody style={{ backgroundColor: "#282828" }}>
+                    <Image source={{ uri: "https://concepto.de/wp-content/uploads/2015/03/paisaje-2-e1549600987975.jpg" }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch"}} />
                 </CardItem>
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Text note>

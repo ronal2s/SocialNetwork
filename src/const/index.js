@@ -1,3 +1,7 @@
+import SCREEN_IMPORT from 'Dimensions'
+
+const SCREEN_WIDTH = SCREEN_IMPORT.get('window').width;
+
 const CONFIG = {
     apiKey: "AIzaSyAksBhAo90khYTZP8BQgL11lohW34WBdOE",
     authDomain: "socialnetwork-3b7a1.firebaseapp.com",
@@ -109,4 +113,4 @@ async function GetBlob(photo) {
 }
 
 
-export { CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }
+export {SCREEN_WIDTH, CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }

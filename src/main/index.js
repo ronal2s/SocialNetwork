@@ -41,14 +41,14 @@ const Loading = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, auth, currentUser, OnChangeProfilePhoto } = props;
+    const { screen, auth, currentUser, OnChangeProfilePhoto, OnLogout } = props;
     // if (screen != "Inicio") {
     // return <Container style={styles.main}>            
     return <Container style={styles.main}>
         {screen == SCREENS.Registro && <Register />}
         {screen == SCREENS.Buscar && <Filtering auth={auth} />}
         {screen == SCREENS.Inicio && <NewsHome />}
-        {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
+        {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnLogout={OnLogout} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
     </Container>
     // }
     return <Text />
@@ -56,7 +56,7 @@ const Pages = (props) => {
 
 class Main extends Component {
     state = {
-        screen: SCREENS.Buscar,
+        screen: SCREENS.Inicio,
         loading: false,
         isUploadingPhoto: false,
         loadingUser: false,
@@ -253,7 +253,7 @@ class Main extends Component {
                 <StatusBar barStyle="light-content" backgroundColor="#232323" />
 
                 {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
-                <Pages OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
+                <Pages OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />

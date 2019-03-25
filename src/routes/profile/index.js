@@ -9,7 +9,7 @@ import Posts from "../../components/posts";
 
 
 const ProfileHeader = (props) => {
-    const { currentUser, OnChangeProfilePhoto, OnModalOpen } = props;
+    const { currentUser, OnLogout, OnModalOpen } = props;
     const image = currentUser.mainPhoto == "" ? DEFAULTPHOTO : { uri: currentUser.mainPhoto }
     return (
         <Grid>
@@ -44,11 +44,20 @@ const ProfileHeader = (props) => {
                         </Col>
                     </Row>
                     <Row>
-                        <TouchableOpacity >
-                            <Text style={styles.textWhite}>
-                                Editar perfil
+                        <Col>
+                            <TouchableOpacity >
+                                <Text style={styles.textWhite}>
+                                    Editar perfil
                             </Text>
-                        </TouchableOpacity>
+                            </TouchableOpacity>
+                        </Col>
+                        <Col>
+                            <TouchableOpacity onPress={OnLogout} >
+                                <Text style={{color: "red"}}>
+                                    Cerrar sesión
+                            </Text>
+                            </TouchableOpacity>
+                        </Col>
                     </Row>
                 </Grid>
             </Row>
@@ -99,6 +108,7 @@ class Profile extends Component {
     GetMyPosts = async () => {
         const { auth, currentUser } = this.props;
         let { posts } = this.state;
+        console.log("USUARIO ES: ", currentUser)
         auth.app.database().ref("/POSTS").child(currentUser.user).orderByChild("date").on("value", (snapshot) => {
             let dataFirebase = [];
             //Convirtiendo la data a un array, proque me lo da en objetos {objeto1: {}, objeto2:{}}
@@ -179,7 +189,7 @@ class Profile extends Component {
                 await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
                     .then(res => {
                         //ACTUALIZANDO INFO DEL USUARIO
-                        currentUser.posts -= 1;
+                        currentUser.posts -= currentUser.posts >0? -1:0;
                         auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser);
                     })
                     .catch(err => {
@@ -197,13 +207,13 @@ class Profile extends Component {
     }
 
     render() {
-        const { auth, currentUser, OnChangeProfilePhoto } = this.props;
+        const { auth, currentUser, OnChangeProfilePhoto, OnLogout } = this.props;
         const { posts, loading, modalPhoto, dataModal } = this.state;
         return (
 
             <ScrollView>
                 <Content>
-                    <ProfileHeader currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} />
+                    <ProfileHeader currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnLogout={OnLogout} />
                 </Content>
                 {loading && <Spinner color="white" />}
                 <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
