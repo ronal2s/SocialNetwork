@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, Spinner, Grid, Col, Row, Button } from "native-base";
+import { Text, Spinner, Grid, Col, Row, Button, Content } from "native-base";
 import { ScrollView, Image, TouchableOpacity, View, Alert } from "react-native";
 import Modal from "react-native-modal";
 import { DEFAULTPHOTO, DATAMODAL } from "../../const";
@@ -58,21 +58,21 @@ const ProfileHeader = (props) => {
 
 const ModalPhoto = (props) => {
     const { open, currentUser, OnCloseModal, dataModal } = props;
-    const textColor1 = dataModal.buttonText1Color == ""? "#232323": dataModal.buttonText1Color;
-    const textColor2 = dataModal.buttonText2Color == ""? "#232323": dataModal.buttonText2Color;
+    const textColor1 = dataModal.buttonText1Color == "" ? "#232323" : dataModal.buttonText1Color;
+    const textColor2 = dataModal.buttonText2Color == "" ? "#232323" : dataModal.buttonText2Color;
     console.log(dataModal)
     return (
         <Modal isVisible={open} style={{ justifyContent: "flex-end", margin: 0 }} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModal} swipeDirection="right" onSwipe={OnCloseModal} onBackdropPress={OnCloseModal}>
             {/* <View styles={[styles.modal, {flex: 0.5}]}> */}
             <View style={styles.modalViewBottom} >
                 <TouchableOpacity style={{ paddingBottom: 10 }} onPress={dataModal.OnPressButton1} >
-                    <Text style={{color: textColor1}}>
+                    <Text style={{ color: textColor1 }}>
                         {dataModal.buttonText1.toUpperCase()}
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={dataModal.OnPressButton2} >
-                    <Text style={{color: textColor2}}>
+                    <Text style={{ color: textColor2 }}>
                         {dataModal.buttonText2.toUpperCase()}
                     </Text>
                 </TouchableOpacity>
@@ -86,7 +86,7 @@ const ModalPhoto = (props) => {
 class Profile extends Component {
     state =
         {
-            posts: [], dataModal: { ...DATAMODAL},
+            posts: [], dataModal: { ...DATAMODAL },
             loading: true,
             modalPhoto: false
         }
@@ -123,7 +123,7 @@ class Profile extends Component {
         this.setState({ dataModal, modalPhoto: true });
 
     }
-    
+
     OnPressPhotoProfile = () => {
         let { dataModal } = this.state;
         dataModal.buttonText1 = "Nueva foto";
@@ -138,8 +138,7 @@ class Profile extends Component {
     OnDeletePhoto = async () => {
         let { auth, currentUser } = this.props;
         //Eliminando la foto del usuario
-        if(currentUser.mainPhoto != "")
-        {
+        if (currentUser.mainPhoto != "") {
             currentUser.mainPhoto = "";
             auth.app.database().ref("/USUARIOS").child(currentUser.user).set(currentUser, async (err) => {
                 if (!err) {
@@ -168,7 +167,7 @@ class Profile extends Component {
     }
 
     OnChangePhoto = () => {
-        this.setState({ modalPhoto: false, dataModal: {...DATAMODAL} }, () => this.props.OnChangeProfilePhoto())
+        this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } }, () => this.props.OnChangeProfilePhoto())
     }
 
     OnDeletePost = async (date) => {
@@ -194,7 +193,7 @@ class Profile extends Component {
     }
 
     OnCloseModal = () => {
-        this.setState({ modalPhoto: false, dataModal: {...DATAMODAL}});
+        this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } });
     }
 
     render() {
@@ -203,7 +202,9 @@ class Profile extends Component {
         return (
 
             <ScrollView>
-                <ProfileHeader currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} />
+                <Content>
+                    <ProfileHeader currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} />
+                </Content>
                 {loading && <Spinner color="white" />}
                 <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
                 <ModalPhoto open={modalPhoto} OnCloseModal={this.OnCloseModal} dataModal={dataModal} />

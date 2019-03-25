@@ -52,6 +52,18 @@ const user = {
 
 }
 
+const SCREENS = 
+{
+    Inicio: "Inicio",
+    Buscar: "Buscar",
+    Camara: "Cámara",
+    Notificaciones: "Notificaciones",
+    Perfil: "Perfil",
+    Registro: "Registro",
+    Login: "Login",
+    Cargando: "Cargando"
+}
+
 const POST = {
     user: "",
     photo: "",
@@ -97,4 +109,4 @@ async function GetBlob(photo) {
 }
 
 
-export { CONFIG, DEFAULTPHOTO, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }
+export { CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }

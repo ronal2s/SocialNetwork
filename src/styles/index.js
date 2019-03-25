@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
 
-
+const PRIMARY_COLOR = "#232323";
+const PRIMARY_COLOR_2 = "#282828";
 
 export default StyleSheet.create({
     //Login
     centerContent: {
-        backgroundColor: "#232323",
+        backgroundColor: PRIMARY_COLOR,
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
@@ -30,11 +31,11 @@ export default StyleSheet.create({
         color: "white"
     },
     textDark: {
-        color: "#232323"
+        color: PRIMARY_COLOR
     },
     header: {
         // backgroundColor: "rgba(255,255,255,1)",
-        backgroundColor: "#282828",
+        backgroundColor: PRIMARY_COLOR_2,
         borderBottomWidth: 0,
         shadowOpacity: 0
     },
@@ -124,7 +125,7 @@ export default StyleSheet.create({
         borderWidth: 2
     },
     sidebarItems: {
-        backgroundColor: "#282828"
+        backgroundColor: PRIMARY_COLOR_2
     },
     //Modal
     modal: {
@@ -144,15 +145,20 @@ export default StyleSheet.create({
         fontWeight: "bold",
         fontSize: 22,
         textAlign: "center",
-        color: "#232323"
+        color: PRIMARY_COLOR
     },
     buttonPrimary: {
-        backgroundColor: "#232323",
-        borderColor: "#232323"
+        backgroundColor: PRIMARY_COLOR,
+        borderColor: PRIMARY_COLOR
     },
     buttonSecondary: {
         backgroundColor: "white",
-        borderColor: "#232323"
+        borderColor: PRIMARY_COLOR
+    },
+    //Profile Componente
+    profileView: {
+        justifyContent: "center",
+        alignItems: "center"
     },
 
     //General
@@ -192,12 +198,20 @@ export default StyleSheet.create({
         borderBottomWidth: 0
     },
     DarkColorBackground: {
-        backgroundColor: "#282828"
+        backgroundColor: PRIMARY_COLOR_2
     },
     main: {
-        backgroundColor: "#232323",
+        backgroundColor: PRIMARY_COLOR,
         // backgroundColor: "rgba(19,19,19,1)",
         flex: 1
     },
+
+    containerCentered: {
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: PRIMARY_COLOR
+    }
 
 })

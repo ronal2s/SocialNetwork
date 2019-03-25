@@ -72,12 +72,12 @@ class Employees extends Component {
         const { total_employees, loading, mainData, actual_data, openModals, } = this.state;
         const { open_modal, close_modal, navigation, handlePages } = this.props;
         return (
-            <Animated.View
-                style={[{ transform: [{ translateX: this.state.x }] }]}>
+            <Animated.ScrollView
+                style={[{ transform: [{ translateX: this.state.x }],  }, styles.DarkColorBackground]}>
 
                 <CardsPhotos />
 
-            </Animated.View>
+            </Animated.ScrollView>
         )
     }
 }

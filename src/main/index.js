@@ -1,25 +1,26 @@
-import React, { Component } from 'react'
-import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image, YellowBox } from 'react-native'
-import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base'
+import React, { Component } from 'react';
+import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage, Image, YellowBox } from 'react-native';
+import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base';
 import Modal from "react-native-modal";
-import { createStackNavigator, createAppContainer } from 'react-navigation'
+import { createStackNavigator, createAppContainer } from 'react-navigation';
 import { Camera, Permissions, FileSystem, ImagePicker } from 'expo';
-import app from "firebase/app"
+import app from "firebase/app";
 import _ from 'lodash';
-import "firebase/auth"
-import "firebase/database"
-import "firebase/storage"
-import { CONFIG, CURRENTUSER, POST, GetBlob } from "../const"
-import Header from '../header'
-import SideBar from '../sidebar'
-import BottomNav from '../components/bottomnav'
+import "firebase/auth";
+import "firebase/database";
+import "firebase/storage";
+import { CONFIG, CURRENTUSER, SCREENS, POST, GetBlob } from "../const";
+import Header from '../header';
+import SideBar from '../sidebar';
+import BottomNav from '../components/bottomnav';
 
-import Profile from '../routes/profile'
-import Register from '../routes/register'
-import Mynunus from '../routes/init'
-import Login from '../routes/login'
-import LoadingPage from '../routes/loading'
-import ModalPost from '../modals/modalPost'
+import Filtering from "../routes/filtering";
+import Profile from '../routes/profile';
+import Register from '../routes/register';
+import NewsHome from '../routes/init';
+import Login from '../routes/login';
+import LoadingPage from '../routes/loading';
+import ModalPost from '../modals/modalPost';
 import styles from '../styles'
 // import { isNullOrUndefined } from 'util';
 
@@ -39,32 +40,24 @@ const Loading = (props) => {
     </Modal>
 }
 
-const Home = (props) => {
-    const { screen, handlePages, loading, isCameraOpen } = props;
-    if (screen == "Inicio" && !isCameraOpen) {
-        return <Content style={styles.content} >
-            <Mynunus handlePages={handlePages} />
-            <Loading loading={loading} />
-        </Content>
-    }
-    return <Text />
-}
-
 const Pages = (props) => {
     const { screen, auth, currentUser, OnChangeProfilePhoto } = props;
-    if (screen != "Inicio") {
+    // if (screen != "Inicio") {
+        // return <Container style={styles.main}>            
         return <Container style={styles.main}>            
-            {screen == "register" && <Register />}
-            {screen == "profile" && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
+            {screen == SCREENS.Registro && <Register />}
+            {screen == SCREENS.Buscar && <Filtering auth={auth} />}
+            {screen == SCREENS.Inicio && <NewsHome />}
+            {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
         </Container>
-    }
+    // }
     return <Text />
 }
 
 const MHeader = (props) => {
-    const { showSearcher, screen, open } = props;
-    if (screen != "login") {
-        return <Header showSearcher={showSearcher} open={open} />
+    const { screen, open } = props;
+    if (screen != SCREENS.Login) {
+        return <Header open={open} />
     }
     return <Text />
 }
@@ -73,12 +66,11 @@ const MHeader = (props) => {
 //Hay un error con el drawer, se necesita poner mainOverlay: 0, si no aparece super oscuro. O type = displace
 class Main extends Component {
     state = {
-        screen: "loading",
+        screen: SCREENS.Buscar,
         loading: false,
         isUploadingPhoto: false,
         loadingUser: false,
         open_modal: false,
-        showSearcher: false,
         hasCameraPermission: "",
         cameraType: Camera.Constants.Type.front,
         isCameraOpen: false,
@@ -100,24 +92,22 @@ class Main extends Component {
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
         // console.log("FECHA ES: ", app.database.ServerValue.TIMESTAMP)
-        console.log("FECHA ES: ", app.database.ServerValue)
         
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
-                console.log(user.email);
+                // console.log(user.email);
                 
                 this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // this.setState({ currentUser: snapshot.val()[UserKey] })
-                        let screen = this.state.screen == "loading" ? "Inicio": this.state.screen;
-                        console.log(screen)
+                        let screen = this.state.screen == SCREENS.Cargando ? SCREENS.Inicio: this.state.screen;
                         this.setState({ currentUser: snapshot.val()[UserKey], screen, loadingUser: false })
                     }
                 })
             } else {
-                this.setState({ screen: "login", loadingUser: false })
+                this.setState({ screen: SCREENS.Login, loadingUser: false })
             }
         })
     }
@@ -187,7 +177,7 @@ class Main extends Component {
                         this.setState({ currentUser: snapshot.val()[UserKey], loadingUser: false })
                         // alert("Usuario validado");
                         // this.setState({loadingUser: false});
-                        this.handlePages("Inicio");
+                        this.handlePages(SCREENS.Inicio);
                     }
                 })
 
@@ -203,7 +193,7 @@ class Main extends Component {
         this.auth.signOut()
             .then(res => {
                 console.log(res);
-                this.setState({ screen: "login" });
+                this.setState({ screen: SCREENS.Login });
             })
             .catch(err => {
                 console.log(err);
@@ -213,14 +203,9 @@ class Main extends Component {
 
 
     handlePages = (page) => {
-        let { showSearcher, screen } = this.state;
-        switch (page) {
-            case "Inicio": showSearcher = false; break;
-            case "login": showSearcher = false; break;
-
-        }
-        this.setState({ loading: false, showSearcher });
-        if (screen != "login") {
+        let { screen } = this.state;        
+        this.setState({ loading: false });
+        if (screen != SCREENS.Login) {
             this.drawer._root.close()
         }
         setTimeout(() => this.setState({ screen: page, loading: false }), 300);
@@ -252,7 +237,7 @@ class Main extends Component {
     }
 
     setUser = (user) => {
-        this.setState({ currentUser: user, screen: "Inicio" });
+        this.setState({ currentUser: user, screen: SCREENS.Inicio });
     }
 
     StopLoading = () =>
@@ -268,14 +253,14 @@ class Main extends Component {
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
-        const { screen, loading, open_modal, showSearcher, hasCameraPermission,
+        const { screen, loading, open_modal, hasCameraPermission,
             previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto } = this.state;
         const { navigation, auth } = this.props;
         // console.log("USUARIO ES: ", currentUser)
-        if (screen == "login") {
+        if (screen == SCREENS.Login) {
             return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth, StopLoading: this.StopLoading })} handlePages={this.handlePages} />
         }
-        if (screen == "loading") {
+        if (screen == SCREENS.Cargando) {
             return <LoadingPage />
         }
         return (
@@ -283,12 +268,12 @@ class Main extends Component {
             <Drawer type="displace" ref={(ref) => this.drawer = ref} onClose={() => this.drawer._root.close()}
                 content={<SideBar screen={screen} OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} handlePages={this.handlePages} isUploadingPhoto={isUploadingPhoto} currentUser={currentUser} />} >
                 <Container style={styles.main} >
-                    <MHeader screen={screen} showSearcher={showSearcher} open={() => this.drawer._root.open()} />
+                    <MHeader screen={screen} open={() => this.drawer._root.open()} />
                     <StatusBar barStyle="light-content" backgroundColor="#232323" />                    
                     
                     {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
                     <Pages OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
-                    <Home loading={loading} screen={screen} handlePages={this.handlePages} />
+                    {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                     <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                     <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
                     {/* <Loading loading={true}/> */}
