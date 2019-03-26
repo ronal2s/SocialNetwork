@@ -13,14 +13,26 @@ const CONFIG = {
 
 const DEFAULTPHOTO = require("../../assets/icons/user.png")
 const DATAMODAL = { buttonText1: "", buttonText2: "", buttonText2Color: "", buttonText1Color: "", OnPressButton1: null, OnPressButton2: null };
+const ROUTES = 
+{
+    Posts: "/POSTS",
+    Usuarios: "/USUARIOS",
+    Solicitudes: "/SOLICITUDES",
+    MeGustas: "/MEGUSTAS"
+}
+
+
 const CURRENTUSER = {
     email: "",
     mainPhoto: "",
     user: "",
-    likes: 0, //numerico
+    // likes: 0, //numerico
     friends: 0, //numero
+    //El plan de que sea numero es no traer toda esa data al cliente, que se solicite y ya.
+    //Si un amigo lo elimina o viceversa, se disminuye el numero en el momento
     posts: 0,
-    requests: [],//Array de objetos de usuarios
+    requests: [],//Array de texto de usuarios
+    messages: [],//Array de mensajes
 }
 
 // const FOLLOWERS =
@@ -29,31 +41,18 @@ const CURRENTUSER = {
 //         user2
 //     ]
 
-
+//Este se usa para el registro
 const user = {
     // uid: "",
-    user: "",
-    pass1: "",
-    pass2: "",
-    mainPhoto: "",
     email: "",
-    followers: [],
-    requests: [],
-    // fotos: [],
-    likes: [], //A quien mis fotos le gustan
-    mensajes: []
-    // mensajes:
-    //     [
-    //         {
-    //             usuario: "",
-    //             mensajes:
-    //             {
-    //                 yo: "",
-    //                 tu: ""
-    //             }
-    //         }
-    //     ]
-
+    mainPhoto: "",
+    friends: 0,
+    //El plan de que sea numero es no traer toda esa data al cliente, que se solicite y ya.
+    //Si un amigo lo elimina o viceversa, se disminuye el numero en el momento
+    posts: 0,
+    user: "",    
+    pass1: "",
+    pass2: "",    
 }
 
 const SCREENS = 
@@ -113,4 +112,4 @@ async function GetBlob(photo) {
 }
 
 
-export {SCREEN_WIDTH, CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }
+export {SCREEN_WIDTH, ROUTES, CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }

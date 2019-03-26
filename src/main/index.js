@@ -9,7 +9,7 @@ import _ from 'lodash';
 import "firebase/auth";
 import "firebase/database";
 import "firebase/storage";
-import { CONFIG, CURRENTUSER, SCREENS, POST, GetBlob } from "../const";
+import { CONFIG, ROUTES, CURRENTUSER, SCREENS, POST, GetBlob } from "../const";
 import Header from '../header';
 import SideBar from '../sidebar';
 import BottomNav from '../components/bottomnav';
@@ -41,12 +41,12 @@ const Loading = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, auth, currentUser, OnChangeProfilePhoto, OnLogout } = props;
+    const { screen, auth, currentUser, OnChangeProfilePhoto, OnSendRequest, OnLogout } = props;
     // if (screen != "Inicio") {
     // return <Container style={styles.main}>            
     return <Container style={styles.main}>
         {screen == SCREENS.Registro && <Register />}
-        {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} />}
+        {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} OnSendRequest={OnSendRequest} />}
         {screen == SCREENS.Inicio && <NewsHome />}
         {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnLogout={OnLogout} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
     </Container>
@@ -78,6 +78,7 @@ class Main extends Component {
         this.setState({ hasCameraPermission: status === 'granted', hasCameraRollPermission: status2 === 'granted' });
         app.initializeApp(CONFIG);
         this.auth = app.auth()
+        // this.OnLogout()
         //VERIFICAR LA FECHA ONLINE PARA VER SI ES CORRECTA, SI NO LO ES NO DEJAR ENTRAR A LOS USUARIOS
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
@@ -87,7 +88,7 @@ class Main extends Component {
                 this.setState({ loadingUser: true })
                 // console.log(user.email);
 
-                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
+                this.auth.app.database().ref(ROUTES.Usuarios).orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // this.setState({ currentUser: snapshot.val()[UserKey] })
@@ -114,8 +115,8 @@ class Main extends Component {
                     GetBlob(currentUser.mainPhoto.uri)
                         .then(async blob => {
                             //SUBIR IMAGEN
-                            const refFoto = this.auth.app.storage().ref("/USUARIOS").child(currentUser.user);
-                            const refUsuario = this.auth.app.database().ref("/USUARIOS");
+                            const refFoto = this.auth.app.storage().ref(ROUTES.Usuarios).child(currentUser.user);
+                            const refUsuario = this.auth.app.database().ref(ROUTES.Usuarios);
                             const snapshot = await refFoto.put(blob);
                             blob.close();
                             snapshot.ref.getDownloadURL()
@@ -159,7 +160,7 @@ class Main extends Component {
                 // console.log(res.user.email);
                 //Obtener datos del usuario
                 AsyncStorage.setItem("uid", res.user.uid);
-                this.auth.app.database().ref("/USUARIOS").orderByChild("email").equalTo(res.user.email).once("value", (snapshot) => {
+                this.auth.app.database().ref(ROUTES.Usuarios).orderByChild("email").equalTo(res.user.email).once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
                         // console.log(snapshot.val()[UserKey])
@@ -188,6 +189,35 @@ class Main extends Component {
                 console.log(err);
                 alert("Ha ocurrido un error");
             })
+    }
+
+    OnSendRequest = (user) =>
+    {
+        //El parámetro user es el usuario a enviar solicitud
+        let { currentUser } = this.state;
+        //Eliminar esta data porque no se lo mandaré en la solictud de amistad
+        delete currentUser.requests;
+        delete currentUser.messages;
+        
+        
+        //ANTES:
+        //La idea de esto es que las solicitudes se envíen en objetos así: {USUARIO: LOQUESEA}
+        //Y luego en el cliente cuando solicite las solicitudes de ese usuario sea Object.keys(snapshot.val())
+        //Y así tendré los nombres de esas solicitudes
+        this.auth.app.database().ref(ROUTES.Solicitudes).child(user).push(currentUser, (err => {
+            if(!err)
+            {
+                alert(`Solicitud enviada a ${user}`);
+            } else
+            {
+                console.log(err)
+                alert("Ha ocurrido un error");
+            }
+            this.setState({screen: SCREENS.Inicio})
+        }));
+        //Para saber si ya la solicitud ha sido enviada, cuando se entre al perfil de alguien, 
+        //hacer un snapshot.exists() del currentUser de la tabla SOLICITUDES del usuario en cuestión
+
     }
 
 
@@ -252,7 +282,7 @@ class Main extends Component {
                 <StatusBar barStyle="light-content" backgroundColor="#232323" />
 
                 {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
-                <Pages OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
+                <Pages OnLogout={this.OnLogout} OnSendRequest={this.OnSendRequest} OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />

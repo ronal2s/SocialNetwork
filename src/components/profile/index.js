@@ -8,11 +8,28 @@ import { SCREEN_WIDTH } from "../../const"
 
 class Profile extends Component {
     render() {
-        const { user, lastPosts, currentUser, OnSendRequest } = this.props;
+        const { user, lastPosts, currentUser, requestSent, OnSendRequest } = this.props;
         console.log("Usuario actual: ", currentUser.user, user.user)
         const image = user.mainPhoto == "" ? DefaultPhoto : { uri: user.mainPhoto };
-        const onPressMyself = currentUser.user == user.user? () => alert("Así se ve tu perfil para desconocidos"): OnSendRequest;
-        const buttonTitle = currentUser.user == user.user?"Información": "Enviar solicitud";
+        let OnPressSolicitar = null;
+        let buttonTitle = null;
+        if(currentUser.user == user.user)
+        {
+            OnPressSolicitar = () => alert("Así se ve tu perfil para desconocidos");
+            buttonTitle = "Información";
+        } 
+        else if(requestSent)
+        {
+            //Si el usuario actual le ha enviado una solicitud a este...
+            OnPressSolicitar = () => alert("La solicitud ya ha sido enviada");
+            buttonTitle = "Solicitud enviada";
+        }
+        else
+        {
+            OnPressSolicitar = () => OnSendRequest(user.user);
+            buttonTitle = "Solicitar";
+        }
+        
         return (
             <Grid>
                 <Row>
@@ -40,7 +57,7 @@ class Profile extends Component {
                     </Col>
                 </Row>
                 <Row style={{ justifyContent: "center", alignItems: "center" }} >
-                    <Button block style={styles.buttonPrimary}  onPress={onPressMyself} >
+                    <Button block style={styles.buttonPrimary}  onPress={OnPressSolicitar} >
                         <Text style={styles.textWhite}>
                             {buttonTitle}
                     </Text>

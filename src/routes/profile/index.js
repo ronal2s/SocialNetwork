@@ -11,6 +11,8 @@ import Posts from "../../components/posts";
 const ProfileHeader = (props) => {
     const { currentUser, OnLogout, OnModalOpen } = props;
     const image = currentUser.mainPhoto == "" ? DEFAULTPHOTO : { uri: currentUser.mainPhoto }
+    const requests = currentUser.requests == undefined? 0: currentUser.requests.length;
+    
     return (
         <Grid>
             <Row>
@@ -24,7 +26,7 @@ const ProfileHeader = (props) => {
                         <Col>
                             <TouchableOpacity>
                                 <Text style={[styles.textWhite, { textAlign: "center" }]} >
-                                    {`${currentUser.requests}\nSolicitudes`}
+                                    {`${requests}\nSolicitudes`}
                                 </Text>
                             </TouchableOpacity>
                         </Col>

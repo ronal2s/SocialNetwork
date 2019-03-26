@@ -4,6 +4,7 @@ import { View, List, ListItem, Thumbnail, Text, Item, Input, Icon, Container, Co
 
 import styles from "../../styles"
 import IconSearch from "../../../assets/icons/user.png"
+import { ROUTES } from "../../const"
 import Profile from "../../components/profile"
 
 const NoContent = (props) => {
@@ -28,21 +29,35 @@ class Filtering extends Component {
         {
             searchedUser: null,
             lastPosts: [],
-            filterText: ""
+            filterText: "",
+            requestSent: false
         }
 
     OnSearchPress = () => {
-        const { auth } = this.props;
+        const { auth, currentUser } = this.props;
         let { searchedUser, filterText } = this.state;
 
-        auth.app.database().ref("/USUARIOS").orderByChild("user").equalTo(filterText).on("value", (snapshot) => {
+        auth.app.database().ref(ROUTES.Usuarios).orderByChild("user").equalTo(filterText).on("value", (snapshot) => {
             if (snapshot.exists()) {
+                //Verificar si ya he enviado la solicitud antes
+                auth.app.database().ref(ROUTES.Solicitudes).child(filterText).once("value", snapshot => {
+                    // if(snapshot.exists)
+                    let newArr = [];
+                    let newItem = null;
+                    snapshot.forEach(item => {
+                        newItem = item.val();
+                        newArr.push(newItem);
+                    })
+                    let requestSent = newArr.find(item => item.user == currentUser.user);
+                    //Si requestSent es un objeto entonces si encontró su solicitud, si no, no lo ha enviado
+                    this.setState({requestSent: requestSent instanceof Object});                    
+                })
 
                 let key = Object.keys(snapshot.val())[0];
                 console.log(key)
                 searchedUser = snapshot.val()[key]
                 //Tener los ultimos posts
-                auth.app.database().ref("/POSTS").child(key).orderByChild("date").limitToFirst(5).once("value", (snapshot) => {
+                auth.app.database().ref("/POSTS").child(key).limitToFirst(5).once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         console.log("DAIRY TIENE POSTS");
                         console.log(snapshot.val())
@@ -75,8 +90,8 @@ class Filtering extends Component {
     }
 
     render() {
-        const { auth, currentUser } = this.props;
-        const { searchedUser, filterText, lastPosts } = this.state;
+        const { auth, currentUser, OnSendRequest } = this.props;
+        const { searchedUser, filterText, lastPosts, requestSent } = this.state;
         console.log(searchedUser)
         return (
             <ScrollView >
@@ -88,7 +103,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile currentUser={currentUser} user={searchedUser} lastPosts={lastPosts}/>}
+                {searchedUser && <Profile OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} requestSent={requestSent}/>}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
         )
