@@ -1,37 +1,39 @@
 import React, { Component } from "react";
 import { TouchableOpacity, ScrollView } from "react-native"
-import { List, ListItem, Left, Right, Body, Thumbnail, Text, InputGroup } from "native-base";
+import { List, ListItem, Left, Footer, Body, Thumbnail, Text, InputGroup, View, FooterTab, Button } from "native-base";
 import Modal from "react-native-modal";
-import DefaultPhoto from "../../../assets/icons/user.png"
+
 import styles from "../../styles"
+import { DEFAULTPHOTO } from "../../const";
 
 const ListRequest = (props) => {
-    const {data, OnAcceptPress, OnDeclinePress } = props;
+    const { data, OnAcceptPress, OnDeclinePress } = props;
     let image = null;
+    console.log("LENGTH; ", data.length)
     return (
         <List>
             {data.map((v, i) => {
-                image = v.mainPhoto == "" ? DefaultPhoto : {uri: v.mainPhoto};
+                image = v.mainPhoto == "" ? DEFAULTPHOTO : { uri: v.mainPhoto };
                 return (
-                    <ListItem avatar key={i} >
+                    <ListItem avatar key={i} noIndent noBorder >
                         <Left>
                             <Thumbnail source={image} />
                         </Left>
                         <Body>
-                            <Text style={styles.textDark} >
+                            <Text style={styles.textWhite} >
                                 {v.user}
                             </Text>
                             <InputGroup  >
                                 <TouchableOpacity onPress={() => OnAcceptPress(v)} >
-                                    <Text style={{ color: "green", paddingRight: 10 }}>
+                                    <Text style={{ color: "white", paddingRight: 10 }}>
                                         Aceptar
-                                            </Text>
+                                    </Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => OnDeclinePress(v)} >
                                     <Text style={{ color: "red" }}>
                                         Rechazar
-                                            </Text>
+                                    </Text>
                                 </TouchableOpacity>
                             </InputGroup>
                         </Body>
@@ -47,11 +49,27 @@ class Requests extends Component {
         const { open, close_modal, data, OnAcceptPress, OnDeclinePress } = this.props;
         let image = null;
         return (
-            <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight" swipeDirection="right"
-                onSwipe={close_modal} onBackButtonPress={close_modal} onBackdropPress={close_modal} style={styles.modal} >
-                <ScrollView>                    
-                    <ListRequest OnAcceptPress={OnAcceptPress} OnDeclinePress={OnDeclinePress} data={data} />
-                </ScrollView>
+            <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight"
+                onBackButtonPress={close_modal} onBackdropPress={close_modal} >
+                {/* <ScrollView> */}
+                <View style={styles.modalDark}>
+                    <ScrollView >
+                        <Text style={styles.textTitle}>
+                            Solicitudes
+                        </Text>
+                        <ListRequest OnAcceptPress={OnAcceptPress} OnDeclinePress={OnDeclinePress} data={data} />
+                    </ScrollView>
+                    <Footer>
+                        <FooterTab>
+                            <Button style={styles.buttonPrimary} onPress={close_modal} >
+                                <Text style={styles.textWhite}>
+                                    Atrás
+                            </Text>
+                            </Button>
+                        </FooterTab>
+                    </Footer>
+                </View>
+                {/* </ScrollView> */}
             </Modal>
         )
     }

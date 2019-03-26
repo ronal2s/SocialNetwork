@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const PRIMARY_COLOR = "#232323";
 const PRIMARY_COLOR_2 = "#282828";
+const FONT_WEIGHT = "200";
 
 export default StyleSheet.create({
     //Login
@@ -28,10 +29,12 @@ export default StyleSheet.create({
         backgroundColor: "white"
     },
     textWhite: {
-        color: "white"
+        color: "white",
+        fontWeight: FONT_WEIGHT
     },
     textDark: {
-        color: PRIMARY_COLOR
+        color: PRIMARY_COLOR,
+        fontWeight: FONT_WEIGHT
     },
     header: {
         // backgroundColor: "rgba(255,255,255,1)",
@@ -85,7 +88,11 @@ export default StyleSheet.create({
         fontSize: 25
     },
     textTitle: {
-        fontWeight: "bold", textAlign: "center", fontSize: 30, color: "white"
+        // fontWeight: "bold", 
+        textAlign: "center", 
+        fontSize: 25, 
+        color: "white", 
+        fontWeight: FONT_WEIGHT
     },
     RegisterIconsSize: {
         width: 150, height: 150
