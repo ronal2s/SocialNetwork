@@ -11,7 +11,7 @@ const ListRequest = (props) => {
     return (
         <List>
             {data.map((v, i) => {
-                image = v.mainPhoto == "" ? DefaultPhoto : v.mainPhoto;
+                image = v.mainPhoto == "" ? DefaultPhoto : {uri: v.mainPhoto};
                 return (
                     <ListItem avatar key={i} onPress={() => OnOpenProfile(v)} >
                         <Left>

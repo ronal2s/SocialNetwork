@@ -8,7 +8,7 @@ import { SCREEN_WIDTH } from "../../const"
 
 class Profile extends Component {
     render() {
-        const { user, lastPosts, currentUser, requestSent, heSentMeRequest, OnSendRequest, OnAcceptRequest } = this.props;
+        const { user, lastPosts, currentUser, requestSent, isMyFriend, heSentMeRequest, OnSendRequest, OnAcceptRequest, OnPressPerfil } = this.props;
         console.log("Usuario actual: ", currentUser.user, user.user)
         const image = user.mainPhoto == "" ? DefaultPhoto : { uri: user.mainPhoto };
         let OnPressSolicitar = null;
@@ -30,6 +30,11 @@ class Profile extends Component {
             OnPressSolicitar = () => OnAcceptRequest();
             buttonTitle = "Aceptar solicitud"
         }
+        else if(isMyFriend)
+       {
+           OnPressSolicitar = () => OnPressPerfil(user);
+           buttonTitle = "Ver perfil";
+       } 
         else
         {
             OnPressSolicitar = () => OnSendRequest(user.user);
@@ -76,7 +81,7 @@ class Profile extends Component {
                         return (
                             <Card transparent key={i} >
                                 <CardItem cardBody style={{ backgroundColor: "#282828" }}>
-                                    <Image blurRadius={20} source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }} />
+                                    <Image blurRadius={isMyFriend?0:20} source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }} />
                                 </CardItem>
                             </Card>
                         )

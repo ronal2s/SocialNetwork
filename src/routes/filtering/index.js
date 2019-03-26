@@ -2,10 +2,11 @@ import React, { Component } from "react";
 import { ScrollView, Image } from "react-native";
 import { View, List, ListItem, Thumbnail, Text, Item, Input, Icon, Container, Content } from "native-base";
 
-import styles from "../../styles"
-import IconSearch from "../../../assets/icons/user.png"
-import { ROUTES } from "../../const"
-import Profile from "../../components/profile"
+import styles from "../../styles";
+import IconSearch from "../../../assets/icons/user.png";
+import { ROUTES } from "../../const";
+import Profile from "../../components/profile";
+import ModalProfile from "../../modals/modalProfile"
 
 const NoContent = (props) => {
     const { searchedUser } = props;
@@ -32,7 +33,9 @@ class Filtering extends Component {
             filterText: "",
             requestSent: false,
             heSentMeRequest: false,
-            isMyFriend: false
+            modalProfile: false,
+            isMyFriend: false,
+            currentFriend: false
         }
 
     OnSearchPress = () => {
@@ -63,41 +66,39 @@ class Filtering extends Component {
                 newItem = null;
                 if (!requestSent) {//Si no he enviado una solicitud antes
                     auth.app.database().ref(ROUTES.Amigos).child(filterText).once("value", snapshot => {
-                        snapshot.forEach(item => {
-                            newItem = item.val();
-                            newArr.push(newItem);
-                        })
-                        isMyFriend = newArr.find(item => item.user == currentUser.user);
-                        isMyFriend = isMyFriend instanceof Object;
-                        this.setState({ isMyFriend });
+                        if (snapshot.exists()) {
+                            snapshot.forEach(item => {
+                                newItem = item.val();
+                                newArr.push(newItem);
+                            })
+                            isMyFriend = newArr.find(item => item.user == currentUser.user);
+                            isMyFriend = isMyFriend instanceof Object;
+                            this.setState({ isMyFriend });
+                        }
                     })
-                    console.log("IS MY FRIEND: ", isMyFriend)
                 }
                 //Revisar si tengo una solicitud de el
                 newArr = [];
                 newItem = null;
-                if (!requestSent) {
+                if (!requestSent && !isMyFriend) {
                     auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user).once("value", snapshot => {
-                        snapshot.forEach(item => {
-                            if (item.val().user == filterText) {
-                                newItem = item.val();
-                            }
-                        })
-                        heSentMeRequest = newItem instanceof Object;
-                        this.setState({ heSentMeRequest });
+                        if (snapshot.exists()) {
+                            snapshot.forEach(item => {
+                                if (item.val().user == filterText) {
+                                    newItem = item.val();
+                                }
+                            })
+                            heSentMeRequest = newItem instanceof Object;
+                            this.setState({ heSentMeRequest });
+                        }
                     })
                 }
 
-                //Revisar si ya el me envió una solicitud previamente
-
                 let key = Object.keys(snapshot.val())[0];
-                console.log(key)
                 searchedUser = snapshot.val()[key]
                 //Tener los ultimos posts
-                auth.app.database().ref("/POSTS").child(key).limitToFirst(5).once("value", (snapshot) => {
+                auth.app.database().ref(ROUTES.Posts).child(key).limitToFirst(5).once("value", (snapshot) => {
                     if (snapshot.exists()) {
-                        console.log("DAIRY TIENE POSTS");
-                        console.log(snapshot.val())
                         //Convirtiendo sus ultimos post en arrays
                         let dataFirebase = [];
                         var newItem = null;
@@ -139,7 +140,6 @@ class Filtering extends Component {
                     newItem = item.val(); //Asignandole el usuario al newItem para luego agregarlo a mis amigos
                 }
             })
-            console.log("NUEVO ARREGLO ES: ", newArray);
             //Actualizar mis solicitudes
             ref.set(newArray, (err) => {
                 if (!err) {
@@ -155,13 +155,12 @@ class Filtering extends Component {
                                     alert("Ha ocurrido un error ")
                                 } else {
                                     // Ir a su perfil...
-                                    alert("TODO LISTO")
+                                    this.setState({isMyFriend: true}, () => this.OnOpenProfile(newItem))                                    
                                 }
                             })
                         }
                     })
-                } else
-                {
+                } else {
                     alert("Ha ocurrido un error");
                     console.log(err)
                 }
@@ -174,9 +173,20 @@ class Filtering extends Component {
     //Verificar si se puede usar el mismo, si no, modificarlo para que sea así
     //Si no cuesta tanto, si no, crear otro
 
+    OnOpenProfile = (user) => {
+        let { currentFriend, modalProfile } = this.state;
+        currentFriend = user;
+        console.log("CURRENT USER: ", currentFriend)
+        this.setState({ currentFriend, modalProfile: true })
+    }
+
+    OnCloseProfile = () => {
+        this.setState({ modalProfile: false })
+    }
+
     render() {
         const { auth, currentUser, OnSendRequest } = this.props;
-        const { searchedUser, filterText, lastPosts, requestSent, heSentMeRequest } = this.state;
+        const { searchedUser, filterText, modalProfile, lastPosts, requestSent, isMyFriend, currentFriend, heSentMeRequest } = this.state;
         console.log(searchedUser)
         return (
             <ScrollView >
@@ -188,8 +198,10 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile OnAcceptRequest={this.OnAcceptRequest} OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} heSentMeRequest={heSentMeRequest} requestSent={requestSent} />}
+                {searchedUser && <Profile OnPressPerfil={(user) => this.OnOpenProfile(user)} OnAcceptRequest={this.OnAcceptRequest} OnSendRequest={OnSendRequest} currentUser={currentUser}
+                    user={searchedUser} lastPosts={lastPosts} heSentMeRequest={heSentMeRequest} requestSent={requestSent} isMyFriend={isMyFriend} />}
                 <NoContent searchedUser={searchedUser} />
+                <ModalProfile open={modalProfile} currentUser={currentFriend} close_modal={this.OnCloseProfile} auth={auth} />
             </ScrollView>
         )
     }
