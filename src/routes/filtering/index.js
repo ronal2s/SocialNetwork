@@ -29,21 +29,25 @@ class Filtering extends Component {
         {
             searchedUser: null,
             lastPosts: [],
-            filterText: "",            
+            filterText: "",
             requestSent: false,
+            heSentMeRequest: false,
             isMyFriend: false
         }
 
     OnSearchPress = () => {
         const { auth, currentUser } = this.props;
-        let { searchedUser, filterText, requestSent, isMyFriend } = this.state;
+        let { searchedUser, filterText, requestSent, isMyFriend, heSentMeRequest } = this.state;
 
-        auth.app.database().ref(ROUTES.Usuarios).orderByChild("user").equalTo(filterText).on("value", (snapshot) => {
+        let refUsuarios = auth.app.database().ref(ROUTES.Usuarios).orderByChild("user")
+        let refSolicitudes = auth.app.database().ref(ROUTES.Solicitudes).child(filterText)
+
+        refUsuarios.equalTo(filterText).on("value", (snapshot) => {
             if (snapshot.exists()) {
                 //Verificar si ya he enviado la solicitud antes
                 let newArr = [];
                 let newItem = null;
-                auth.app.database().ref(ROUTES.Solicitudes).child(filterText).once("value", snapshot => {
+                refSolicitudes.once("value", snapshot => {
                     // if(snapshot.exists)
                     snapshot.forEach(item => {
                         newItem = item.val();
@@ -57,7 +61,7 @@ class Filtering extends Component {
                 //En caso de no estar en sus solicitudes, revisar si estoy en su lista de amigos
                 newArr = [];
                 newItem = null;
-                if (!requestSent) {
+                if (!requestSent) {//Si no he enviado una solicitud antes
                     auth.app.database().ref(ROUTES.Amigos).child(filterText).once("value", snapshot => {
                         snapshot.forEach(item => {
                             newItem = item.val();
@@ -69,6 +73,22 @@ class Filtering extends Component {
                     })
                     console.log("IS MY FRIEND: ", isMyFriend)
                 }
+                //Revisar si tengo una solicitud de el
+                newArr = [];
+                newItem = null;
+                if (!requestSent) {
+                    auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user).once("value", snapshot => {
+                        snapshot.forEach(item => {
+                            if (item.val().user == filterText) {
+                                newItem = item.val();
+                            }
+                        })
+                        heSentMeRequest = newItem instanceof Object;
+                        this.setState({ heSentMeRequest });
+                    })
+                }
+
+                //Revisar si ya el me envió una solicitud previamente
 
                 let key = Object.keys(snapshot.val())[0];
                 console.log(key)
@@ -106,6 +126,49 @@ class Filtering extends Component {
         }
     }
 
+    OnAcceptRequest = async () => {
+        let { filterText } = this.state;
+        let { auth, currentUser } = this.props;
+        let newArray = [], newItem = null;
+        let ref = auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user)
+        ref.orderByKey().once("value", snapshot => {
+            snapshot.forEach(item => {
+                if (item.val().user != filterText) {
+                    newArray.push(item.val())
+                } else {
+                    newItem = item.val(); //Asignandole el usuario al newItem para luego agregarlo a mis amigos
+                }
+            })
+            console.log("NUEVO ARREGLO ES: ", newArray);
+            //Actualizar mis solicitudes
+            ref.set(newArray, (err) => {
+                if (!err) {
+                    // Agregando el usuario a nuestra lista de amigos
+                    ref = auth.app.database().ref(ROUTES.Amigos)
+                    ref.child(currentUser.user).push(newItem, err => {
+                        if (err) {
+                            alert("Ha ocurrido un error ")
+                        } else {
+                            // Agregando el usuario a su lista de amigos
+                            ref.child(newItem.user).push(currentUser, err => {
+                                if (err) {
+                                    alert("Ha ocurrido un error ")
+                                } else {
+                                    // Ir a su perfil...
+                                    alert("TODO LISTO")
+                                }
+                            })
+                        }
+                    })
+                } else
+                {
+                    alert("Ha ocurrido un error");
+                    console.log(err)
+                }
+            })
+        })
+    }
+
     //Si al buscar una persona y resulta que es amiga mia, puedo ver todo su perfil
     //Para eso, crear un componente de perfil muy similar al del usuario
     //Verificar si se puede usar el mismo, si no, modificarlo para que sea así
@@ -113,7 +176,7 @@ class Filtering extends Component {
 
     render() {
         const { auth, currentUser, OnSendRequest } = this.props;
-        const { searchedUser, filterText, lastPosts, requestSent } = this.state;
+        const { searchedUser, filterText, lastPosts, requestSent, heSentMeRequest } = this.state;
         console.log(searchedUser)
         return (
             <ScrollView >
@@ -125,7 +188,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} requestSent={requestSent} />}
+                {searchedUser && <Profile OnAcceptRequest={this.OnAcceptRequest} OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} heSentMeRequest={heSentMeRequest} requestSent={requestSent} />}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
         )

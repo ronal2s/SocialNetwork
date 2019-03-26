@@ -8,7 +8,7 @@ import { SCREEN_WIDTH } from "../../const"
 
 class Profile extends Component {
     render() {
-        const { user, lastPosts, currentUser, requestSent, OnSendRequest } = this.props;
+        const { user, lastPosts, currentUser, requestSent, heSentMeRequest, OnSendRequest, OnAcceptRequest } = this.props;
         console.log("Usuario actual: ", currentUser.user, user.user)
         const image = user.mainPhoto == "" ? DefaultPhoto : { uri: user.mainPhoto };
         let OnPressSolicitar = null;
@@ -23,6 +23,12 @@ class Profile extends Component {
             //Si el usuario actual le ha enviado una solicitud a este...
             OnPressSolicitar = () => alert("La solicitud ya ha sido enviada");
             buttonTitle = "Solicitud enviada";
+        }
+        else if(heSentMeRequest)
+        {
+            //Si el me mandó una solicitud a mi...
+            OnPressSolicitar = () => OnAcceptRequest();
+            buttonTitle = "Aceptar solicitud"
         }
         else
         {

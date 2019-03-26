@@ -97,7 +97,7 @@ const ModalPhoto = (props) => {
 class Profile extends Component {
     state =
         {
-            posts: [], requests: [],friends: [],
+            posts: [], requests: [], friends: [],
             dataModal: { ...DATAMODAL },
             dataNumbers: { requestsNumber: 0, friendsNumber: 0, postsNumber: 0 },
             loading: true,
@@ -135,7 +135,7 @@ class Profile extends Component {
         let { requests, dataNumbers } = this.state;
         requests = [];
         let newItem = null;
-        auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user).on("value", snapshot => {
+        auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user).once("value", snapshot => {
             snapshot.forEach(item => {
                 newItem = item.val();
                 requests.push(newItem);
@@ -144,7 +144,7 @@ class Profile extends Component {
             this.setState({ requests, dataNumbers });
         });
     }
-    
+
     GetMyFriends = async () => {
         const { auth, currentUser } = this.props;
         let { friends, dataNumbers } = this.state;
@@ -186,9 +186,15 @@ class Profile extends Component {
                     auth.app.database().ref(ROUTES.Amigos).child(currentUser.user).push(user, err => {
                         if (err) {
                             alert("Ha ocurrido un error ")
-                        } else
-                        {
-                            this.GetMyRequests();
+                        } else {
+                            // Agregando el usuario a su lista de amigos
+                            auth.app.database().ref(ROUTES.Amigos).child(user.user).push(currentUser, err => {
+                                if (err) {
+                                    alert("Ha ocurrido un error ")
+                                } else {
+                                    this.GetMyRequests();
+                                }
+                            })
                         }
                     })
                 }
@@ -201,121 +207,142 @@ class Profile extends Component {
         //     console.log(err)
         // })
         console.log("NUEVO ARRAY: ", newArray);
-    // })
-}
+        // })
+    }
 
-OnDeletePostAlert = (date) => {
-    let { dataModal } = this.state;
-    dataModal.buttonText1 = "eliminar";
-    dataModal.buttonText2 = "cancelar";
-    dataModal.buttonText1Color = "red";
-    dataModal.OnPressButton1 = () => this.OnDeletePost(date);
-    dataModal.OnPressButton2 = () => this.OnCloseModal();
-    this.setState({ dataModal, modalPhoto: true });
+    OnDeclinePress = async (user) => {
+        let { currentUser, auth } = this.props;
+        let newArr = [];
+        let ref = auth.app.database().ref(ROUTES.Solicitudes).child(currentUser.user);
+        ref.once("value", snapshot => {
+            snapshot.forEach(item => {
+                if (item.val().user != user.user) {
+                    newArr.push(item.val());
+                }
+            });
+            console.log("NRE ARRAY: ", newArr)
+            ref.set(newArr, err => {
+                if (err) {
+                    console.log(err);
+                    alert("Ha ocurrido un error")
+                } else
+                {
+                    this.GetMyRequests();
+                }
+            })
+        })
+    }
 
-}
+    OnDeletePostAlert = (date) => {
+        let { dataModal } = this.state;
+        dataModal.buttonText1 = "eliminar";
+        dataModal.buttonText2 = "cancelar";
+        dataModal.buttonText1Color = "red";
+        dataModal.OnPressButton1 = () => this.OnDeletePost(date);
+        dataModal.OnPressButton2 = () => this.OnCloseModal();
+        this.setState({ dataModal, modalPhoto: true });
 
-OnPressPhotoProfile = () => {
-    let { dataModal } = this.state;
-    dataModal.buttonText1 = "Nueva foto";
-    dataModal.buttonText2 = "Eliminar";
-    dataModal.buttonText2Color = "red";
-    dataModal.OnPressButton1 = () => this.OnChangePhoto();
-    dataModal.OnPressButton2 = () => this.OnDeletePhoto();
-    this.setState({ dataModal, modalPhoto: true });
+    }
 
-}
+    OnPressPhotoProfile = () => {
+        let { dataModal } = this.state;
+        dataModal.buttonText1 = "Nueva foto";
+        dataModal.buttonText2 = "Eliminar";
+        dataModal.buttonText2Color = "red";
+        dataModal.OnPressButton1 = () => this.OnChangePhoto();
+        dataModal.OnPressButton2 = () => this.OnDeletePhoto();
+        this.setState({ dataModal, modalPhoto: true });
 
-OnDeletePhoto = async () => {
-    let { auth, currentUser } = this.props;
-    //Eliminando la foto del usuario
-    if (currentUser.mainPhoto != "") {
-        currentUser.mainPhoto = "";
-        auth.app.database().ref(ROUTES.Usuarios).child(currentUser.user).set(currentUser, async (err) => {
+    }
+
+    OnDeletePhoto = async () => {
+        let { auth, currentUser } = this.props;
+        //Eliminando la foto del usuario
+        if (currentUser.mainPhoto != "") {
+            currentUser.mainPhoto = "";
+            auth.app.database().ref(ROUTES.Usuarios).child(currentUser.user).set(currentUser, async (err) => {
+                if (!err) {
+                    this.OnCloseModal();
+                    //Eliminando la foto del almacenamiento
+                    await auth.app.storage().ref(ROUTES.Usuarios).child(currentUser.user).delete()
+                        .then(res => {
+                            console.log("Eliminado del almacenamiento");
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            alert("Ha ocurrido un error")
+                        })
+                } else {
+                    console.log(err)
+                    alert("Ha ocurrido un error");
+                }
+            })
+        }
+    }
+
+    handleModal = (dataModal) => {
+        let { modalPhoto } = this.state;
+        modalPhoto = !modalPhoto
+        this.setState({ modalPhoto, dataModal })
+    }
+
+    OnChangePhoto = () => {
+        this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } }, () => this.props.OnChangeProfilePhoto())
+    }
+
+    OnDeletePost = async (date) => {
+        const { auth, currentUser } = this.props;
+        // this.setState({modalPhoto: false})
+        this.OnCloseModal();
+        auth.app.database().ref(ROUTES.Posts).child(currentUser.user).child(date).remove(async err => {
             if (!err) {
-                this.OnCloseModal();
-                //Eliminando la foto del almacenamiento
-                await auth.app.storage().ref(ROUTES.Usuarios).child(currentUser.user).delete()
+                await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
                     .then(res => {
-                        console.log("Eliminado del almacenamiento");
+                        console.log("Post eliminado")
                     })
                     .catch(err => {
                         console.log(err);
-                        alert("Ha ocurrido un error")
+                        alert("Ha ocurrido un error");
                     })
             } else {
-                console.log(err)
                 alert("Ha ocurrido un error");
             }
         })
     }
-}
 
-handleModal = (dataModal) => {
-    let { modalPhoto } = this.state;
-    modalPhoto = !modalPhoto
-    this.setState({ modalPhoto, dataModal })
-}
-
-OnChangePhoto = () => {
-    this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } }, () => this.props.OnChangeProfilePhoto())
-}
-
-OnDeletePost = async (date) => {
-    const { auth, currentUser } = this.props;
-    // this.setState({modalPhoto: false})
-    this.OnCloseModal();
-    auth.app.database().ref(ROUTES.Posts).child(currentUser.user).child(date).remove(async err => {
-        if (!err) {
-            await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
-                .then(res => {
-                    console.log("Post eliminado")
-                })
-                .catch(err => {
-                    console.log(err);
-                    alert("Ha ocurrido un error");
-                })
-        } else {
-            alert("Ha ocurrido un error");
-        }
-    })
-}
-
-OnCloseModal = () => {
-    this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } });
-}
-
-OnRequestsHandler = () => {
-    let { requestsVisible, requests } = this.state;
-    requestsVisible = !requestsVisible;
-    if(requestsVisible)
-    {
-        if(!(requests.length > 0))
-        {
-            requestsVisible = false;
-            alert("No hay solicitudes que mostrar")
-        }
+    OnCloseModal = () => {
+        this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } });
     }
-    this.setState({ requestsVisible });
-}
 
-render() {
-    const { auth, currentUser, OnChangeProfilePhoto, OnLogout } = this.props;
-    const { posts, loading, modalPhoto, dataModal, requestsVisible, requests, dataNumbers } = this.state;
-    return (
+    OnRequestsHandler = () => {
+        let { requestsVisible, requests } = this.state;
+        requestsVisible = !requestsVisible;
+        if (requestsVisible) {
+            if (!(requests.length > 0)) {
+                requestsVisible = false;
+                alert("No hay solicitudes que mostrar")
+            }
+        }
+        this.setState({ requestsVisible });
+    }
 
-        <ScrollView>
-            <Content>
-                <ProfileHeader dataNumbers={dataNumbers} currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnRequestsOpen={this.OnRequestsHandler} OnLogout={OnLogout} />
-            </Content>
-            {loading && <Spinner color="white" />}
-            <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
-            <ModalPhoto open={modalPhoto} OnCloseModal={this.OnCloseModal} dataModal={dataModal} />
-            <ModalRequests open={requestsVisible} data={requests} close_modal={this.OnRequestsHandler} requests={""} OnDeletePress={""} OnAcceptPress={this.OnAcceptRequest} />
-        </ScrollView>
+    render() {
+        const { auth, currentUser, OnChangeProfilePhoto, OnLogout } = this.props;
+        const { posts, loading, modalPhoto, dataModal, requestsVisible, requests, dataNumbers } = this.state;
+        return (
 
-    )
-}
+            <ScrollView>
+                <Content>
+                    <ProfileHeader dataNumbers={dataNumbers} currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnRequestsOpen={this.OnRequestsHandler} OnLogout={OnLogout} />
+                </Content>
+                {loading && <Spinner color="white" />}
+                <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
+                <ModalPhoto open={modalPhoto} OnCloseModal={this.OnCloseModal} dataModal={dataModal} />
+                <ModalRequests open={requestsVisible} data={requests} close_modal={this.OnRequestsHandler} requests={""} OnDeclinePress={this.OnDeclinePress} OnAcceptPress={this.OnAcceptRequest} />
+            </ScrollView>
+
+        )
+    }
 }
 
 export default Profile;

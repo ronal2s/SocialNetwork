@@ -28,9 +28,9 @@ const ListRequest = (props) => {
                                             </Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => OnDeclinePress(v)} >
                                     <Text style={{ color: "red" }}>
-                                        Cancelar
+                                        Rechazar
                                             </Text>
                                 </TouchableOpacity>
                             </InputGroup>
@@ -44,13 +44,13 @@ const ListRequest = (props) => {
 
 class Requests extends Component {
     render() {
-        const { open, close_modal, data, OnAcceptPress } = this.props;
+        const { open, close_modal, data, OnAcceptPress, OnDeclinePress } = this.props;
         let image = null;
         return (
             <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight" swipeDirection="right"
                 onSwipe={close_modal} onBackButtonPress={close_modal} onBackdropPress={close_modal} style={styles.modal} >
                 <ScrollView>                    
-                    <ListRequest OnAcceptPress={OnAcceptPress} data={data} />
+                    <ListRequest OnAcceptPress={OnAcceptPress} OnDeclinePress={OnDeclinePress} data={data} />
                 </ScrollView>
             </Modal>
         )
