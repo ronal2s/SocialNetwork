@@ -75,7 +75,7 @@ class Filtering extends Component {
     }
 
     render() {
-        const { auth } = this.props;
+        const { auth, currentUser } = this.props;
         const { searchedUser, filterText, lastPosts } = this.state;
         console.log(searchedUser)
         return (
@@ -88,7 +88,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile user={searchedUser} lastPosts={lastPosts}/>}
+                {searchedUser && <Profile currentUser={currentUser} user={searchedUser} lastPosts={lastPosts}/>}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
         )

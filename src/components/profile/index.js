@@ -8,9 +8,11 @@ import { SCREEN_WIDTH } from "../../const"
 
 class Profile extends Component {
     render() {
-        const { user, lastPosts } = this.props;
-        console.log("DAIRY POSTESSS: ", lastPosts)
+        const { user, lastPosts, currentUser, OnSendRequest } = this.props;
+        console.log("Usuario actual: ", currentUser.user, user.user)
         const image = user.mainPhoto == "" ? DefaultPhoto : { uri: user.mainPhoto };
+        const onPressMyself = currentUser.user == user.user? () => alert("Así se ve tu perfil para desconocidos"): OnSendRequest;
+        const buttonTitle = currentUser.user == user.user?"Información": "Enviar solicitud";
         return (
             <Grid>
                 <Row>
@@ -38,9 +40,9 @@ class Profile extends Component {
                     </Col>
                 </Row>
                 <Row style={{ justifyContent: "center", alignItems: "center" }} >
-                    <Button block style={styles.buttonPrimary}>
+                    <Button block style={styles.buttonPrimary}  onPress={onPressMyself} >
                         <Text style={styles.textWhite}>
-                            enviar solicitud
+                            {buttonTitle}
                     </Text>
                     </Button>
                 </Row>

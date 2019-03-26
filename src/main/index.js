@@ -46,7 +46,7 @@ const Pages = (props) => {
     // return <Container style={styles.main}>            
     return <Container style={styles.main}>
         {screen == SCREENS.Registro && <Register />}
-        {screen == SCREENS.Buscar && <Filtering auth={auth} />}
+        {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} />}
         {screen == SCREENS.Inicio && <NewsHome />}
         {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnLogout={OnLogout} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
     </Container>
@@ -56,7 +56,7 @@ const Pages = (props) => {
 
 class Main extends Component {
     state = {
-        screen: SCREENS.Inicio,
+        screen: SCREENS.Cargando,
         loading: false,
         isUploadingPhoto: false,
         loadingUser: false,
