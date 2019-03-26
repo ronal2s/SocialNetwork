@@ -30,28 +30,46 @@ class Filtering extends Component {
             searchedUser: null,
             lastPosts: [],
             filterText: "",
-            requestSent: false
+            requestSent: false,
+            isMyFriend: false
         }
 
     OnSearchPress = () => {
         const { auth, currentUser } = this.props;
-        let { searchedUser, filterText } = this.state;
+        let { searchedUser, filterText, requestSent, isMyFriend } = this.state;
 
         auth.app.database().ref(ROUTES.Usuarios).orderByChild("user").equalTo(filterText).on("value", (snapshot) => {
             if (snapshot.exists()) {
                 //Verificar si ya he enviado la solicitud antes
+                let newArr = [];
+                let newItem = null;
                 auth.app.database().ref(ROUTES.Solicitudes).child(filterText).once("value", snapshot => {
                     // if(snapshot.exists)
-                    let newArr = [];
-                    let newItem = null;
                     snapshot.forEach(item => {
                         newItem = item.val();
                         newArr.push(newItem);
                     })
-                    let requestSent = newArr.find(item => item.user == currentUser.user);
+                    requestSent = newArr.find(item => item.user == currentUser.user);
                     //Si requestSent es un objeto entonces si encontró su solicitud, si no, no lo ha enviado
-                    this.setState({requestSent: requestSent instanceof Object});                    
+                    requestSent = requestSent instanceof Object;
+                    this.setState({ requestSent });
                 })
+                //En caso de no estar en sus solicitudes, revisar si estoy en su lista de amigos
+                newArr = [];
+                newItem = null;
+                if (!requestSent) {
+                    console.log("DENTRO")
+                    auth.app.database().ref(ROUTES.Amigos).child(filterText).once("value", snapshot => {
+                        snapshot.forEach(item => {
+                            newItem = item.val();
+                            newArr.push(newItem);
+                        })
+                        isMyFriend = newArr.find(item => item.user == currentUser.user);
+                        isMyFriend = isMyFriend instanceof Object;
+                        this.setState({ isMyFriend });
+                    })
+                    console.log("IS MY FRIEND: ", isMyFriend)
+                }
 
                 let key = Object.keys(snapshot.val())[0];
                 console.log(key)
@@ -68,7 +86,7 @@ class Filtering extends Component {
                             newItem = item.val();
                             dataFirebase.push(newItem)
                         });
-                        this.setState({lastPosts: dataFirebase})
+                        this.setState({ lastPosts: dataFirebase })
                     }
                 })
                 //Verificar si somos amigos o no
@@ -89,6 +107,11 @@ class Filtering extends Component {
         }
     }
 
+    //Si al buscar una persona y resulta que es amiga mia, puedo ver todo su perfil
+    //Para eso, crear un componente de perfil muy similar al del usuario
+    //Verificar si se puede usar el mismo, si no, modificarlo para que sea así
+    //Si no cuesta tanto, si no, crear otro
+
     render() {
         const { auth, currentUser, OnSendRequest } = this.props;
         const { searchedUser, filterText, lastPosts, requestSent } = this.state;
@@ -103,7 +126,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} requestSent={requestSent}/>}
+                {searchedUser && <Profile OnSendRequest={OnSendRequest} currentUser={currentUser} user={searchedUser} lastPosts={lastPosts} requestSent={requestSent} />}
                 <NoContent searchedUser={searchedUser} />
             </ScrollView>
         )

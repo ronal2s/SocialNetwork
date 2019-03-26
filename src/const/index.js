@@ -18,6 +18,7 @@ const ROUTES =
     Posts: "/POSTS",
     Usuarios: "/USUARIOS",
     Solicitudes: "/SOLICITUDES",
+    Amigos: "/AMIGOS",
     MeGustas: "/MEGUSTAS"
 }
 

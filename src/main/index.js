@@ -208,6 +208,7 @@ class Main extends Component {
             if(!err)
             {
                 alert(`Solicitud enviada a ${user}`);
+                //Asignarle esa solicitud al usuario actual o cuando se cambie a la ventana perfil buscar las solicitudes en componentdidmount
             } else
             {
                 console.log(err)
