@@ -58,7 +58,6 @@ class Filtering extends Component {
                 newArr = [];
                 newItem = null;
                 if (!requestSent) {
-                    console.log("DENTRO")
                     auth.app.database().ref(ROUTES.Amigos).child(filterText).once("value", snapshot => {
                         snapshot.forEach(item => {
                             newItem = item.val();

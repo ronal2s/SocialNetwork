@@ -28,10 +28,10 @@ const CURRENTUSER = {
     mainPhoto: "",
     user: "",
     // likes: 0, //numerico
-    friends: 0, //numero
+    // friends: 0, //numero. Lo haré con un length
     //El plan de que sea numero es no traer toda esa data al cliente, que se solicite y ya.
     //Si un amigo lo elimina o viceversa, se disminuye el numero en el momento
-    posts: 0,
+    // posts: 0, //Ya no será necesario, lo haré con un .length
     requests: [],//Array de texto de usuarios
     messages: [],//Array de mensajes
 }

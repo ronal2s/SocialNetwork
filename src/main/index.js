@@ -86,8 +86,7 @@ class Main extends Component {
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ loadingUser: true })
-                // console.log(user.email);
-
+                //Obteniendo info del usuario actual
                 this.auth.app.database().ref(ROUTES.Usuarios).orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
                     if (snapshot.exists()) {
                         const UserKey = Object.keys(snapshot.val())[0]
