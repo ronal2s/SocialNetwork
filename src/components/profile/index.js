@@ -44,7 +44,7 @@ class Profile extends Component {
                         </View>
                     </Col>
                 </Row>
-                <Row>
+                {/* <Row>
                     <Col>
                         <Text style={[styles.textWhite, { textAlign: "center" }]} >
                             {`Amigos\n${user.friends}`}
@@ -55,7 +55,7 @@ class Profile extends Component {
                             {`Posts\n${user.posts}`}
                         </Text>
                     </Col>
-                </Row>
+                </Row> */}
                 <Row style={{ justifyContent: "center", alignItems: "center" }} >
                     <Button block style={styles.buttonPrimary}  onPress={OnPressSolicitar} >
                         <Text style={styles.textWhite}>

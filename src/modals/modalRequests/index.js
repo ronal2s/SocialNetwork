@@ -4,44 +4,53 @@ import { List, ListItem, Left, Right, Body, Thumbnail, Text, InputGroup } from "
 import Modal from "react-native-modal";
 import DefaultPhoto from "../../../assets/icons/user.png"
 import styles from "../../styles"
+
+const ListRequest = (props) => {
+    const {data, OnAcceptPress, OnDeclinePress } = props;
+    let image = null;
+    return (
+        <List>
+            {data.map((v, i) => {
+                image = v.mainPhoto == "" ? DefaultPhoto : v.mainPhoto;
+                return (
+                    <ListItem avatar key={i} >
+                        <Left>
+                            <Thumbnail source={image} />
+                        </Left>
+                        <Body>
+                            <Text style={styles.textDark} >
+                                {v.user}
+                            </Text>
+                            <InputGroup  >
+                                <TouchableOpacity onPress={() => OnAcceptPress(v)} >
+                                    <Text style={{ color: "green", paddingRight: 10 }}>
+                                        Aceptar
+                                            </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity>
+                                    <Text style={{ color: "red" }}>
+                                        Cancelar
+                                            </Text>
+                                </TouchableOpacity>
+                            </InputGroup>
+                        </Body>
+                    </ListItem>
+                )
+            })}
+        </List>
+    )
+}
+
 class Requests extends Component {
     render() {
-        const { open, close_modal, data } = this.props;
+        const { open, close_modal, data, OnAcceptPress } = this.props;
         let image = null;
         return (
             <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight" swipeDirection="right"
                 onSwipe={close_modal} onBackButtonPress={close_modal} onBackdropPress={close_modal} style={styles.modal} >
-                <ScrollView>
-                    <List>
-                        {data.map((v, i) => {
-                            image = v.mainPhoto == ""? DefaultPhoto: v.mainPhoto;
-                            return (
-                                <ListItem avatar key={i} >
-                                    <Left>
-                                        <Thumbnail source={image} />
-                                    </Left>
-                                    <Body>
-                                        <Text style={styles.textDark} >
-                                            {v.user}
-                                        </Text>
-                                        <InputGroup  >
-                                            <TouchableOpacity>
-                                                <Text style={{ color: "green", paddingRight: 10 }}>
-                                                    Aceptar
-                                            </Text>
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity>
-                                                <Text style={{ color: "red" }}>
-                                                    Cancelar
-                                            </Text>
-                                            </TouchableOpacity>
-                                        </InputGroup>
-                                    </Body>
-                                </ListItem>
-                            )
-                        })}
-                    </List>
+                <ScrollView>                    
+                    <ListRequest OnAcceptPress={OnAcceptPress} data={data} />
                 </ScrollView>
             </Modal>
         )

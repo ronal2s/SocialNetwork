@@ -29,7 +29,7 @@ class Filtering extends Component {
         {
             searchedUser: null,
             lastPosts: [],
-            filterText: "",
+            filterText: "",            
             requestSent: false,
             isMyFriend: false
         }
