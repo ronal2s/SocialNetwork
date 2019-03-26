@@ -6,11 +6,13 @@ import { DEFAULTPHOTO, DATAMODAL, ROUTES } from "../../const";
 import styles from "../../styles";
 import Posts from "../../components/posts";
 import ModalRequests from "../../modals/modalRequests"
+import ModalFriends from "../../modals/modalFriends"
+import ModalProfile from "../../modals/modalProfile"
 
 
 
 const ProfileHeader = (props) => {
-    const { currentUser, OnLogout, OnModalOpen, OnRequestsOpen, dataNumbers } = props;
+    const { currentUser, OnLogout, OnModalOpen, OnRequestsOpen, OnFriendsOpen, dataNumbers } = props;
     const image = currentUser.mainPhoto == "" ? DEFAULTPHOTO : { uri: currentUser.mainPhoto }
 
     return (
@@ -38,7 +40,7 @@ const ProfileHeader = (props) => {
                             </TouchableOpacity>
                         </Col>
                         <Col >
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={OnFriendsOpen} >
                                 <Text style={[styles.textWhite, { textAlign: "center" }]} >
                                     {`${dataNumbers.friendsNumber}\nAmigos`}
                                 </Text>
@@ -68,12 +70,12 @@ const ProfileHeader = (props) => {
 }
 
 const ModalPhoto = (props) => {
-    const { open, currentUser, OnCloseModal, dataModal } = props;
+    const { open, currentUser, OnCloseModalPhoto, dataModal } = props;
     const textColor1 = dataModal.buttonText1Color == "" ? "#232323" : dataModal.buttonText1Color;
     const textColor2 = dataModal.buttonText2Color == "" ? "#232323" : dataModal.buttonText2Color;
 
     return (
-        <Modal isVisible={open} style={{ justifyContent: "flex-end", margin: 0 }} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModal} swipeDirection="right" onSwipe={OnCloseModal} onBackdropPress={OnCloseModal}>
+        <Modal isVisible={open} style={{ justifyContent: "flex-end", margin: 0 }} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModalPhoto} swipeDirection="right" onSwipe={OnCloseModalPhoto} onBackdropPress={OnCloseModalPhoto}>
             {/* <View styles={[styles.modal, {flex: 0.5}]}> */}
             <View style={styles.modalViewBottom} >
                 <TouchableOpacity style={{ paddingBottom: 10 }} onPress={dataModal.OnPressButton1} >
@@ -101,8 +103,8 @@ class Profile extends Component {
             dataModal: { ...DATAMODAL },
             dataNumbers: { requestsNumber: 0, friendsNumber: 0, postsNumber: 0 },
             loading: true,
-            modalPhoto: false,
-            requestsVisible: false
+            modalPhoto: false,modalRequest: false, modalFriends: false, modalProfile: false,
+            currentFriend: null
         }
 
     async componentWillMount() {
@@ -239,7 +241,7 @@ class Profile extends Component {
         dataModal.buttonText2 = "cancelar";
         dataModal.buttonText1Color = "red";
         dataModal.OnPressButton1 = () => this.OnDeletePost(date);
-        dataModal.OnPressButton2 = () => this.OnCloseModal();
+        dataModal.OnPressButton2 = () => this.OnCloseModalPhoto();
         this.setState({ dataModal, modalPhoto: true });
 
     }
@@ -262,7 +264,7 @@ class Profile extends Component {
             currentUser.mainPhoto = "";
             auth.app.database().ref(ROUTES.Usuarios).child(currentUser.user).set(currentUser, async (err) => {
                 if (!err) {
-                    this.OnCloseModal();
+                    this.OnCloseModalPhoto();
                     //Eliminando la foto del almacenamiento
                     await auth.app.storage().ref(ROUTES.Usuarios).child(currentUser.user).delete()
                         .then(res => {
@@ -293,7 +295,7 @@ class Profile extends Component {
     OnDeletePost = async (date) => {
         const { auth, currentUser } = this.props;
         // this.setState({modalPhoto: false})
-        this.OnCloseModal();
+        this.OnCloseModalPhoto();
         auth.app.database().ref(ROUTES.Posts).child(currentUser.user).child(date).remove(async err => {
             if (!err) {
                 await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
@@ -310,35 +312,62 @@ class Profile extends Component {
         })
     }
 
-    OnCloseModal = () => {
+    OnCloseModalPhoto = () => {
         this.setState({ modalPhoto: false, dataModal: { ...DATAMODAL } });
     }
 
     OnRequestsHandler = () => {
-        let { requestsVisible, requests } = this.state;
-        requestsVisible = !requestsVisible;
-        if (requestsVisible) {
+        let { modalRequest, requests } = this.state;
+        modalRequest = !modalRequest;
+        if (modalRequest) {
             if (!(requests.length > 0)) {
-                requestsVisible = false;
+                modalRequest = false;
                 alert("No hay solicitudes que mostrar")
             }
         }
-        this.setState({ requestsVisible });
+        this.setState({ modalRequest });
+    }
+    
+    OnFriendsHandler = () => {
+        let { modalFriends, friends } = this.state;
+        modalFriends = !modalFriends;
+        if (modalFriends) {
+            if (!(friends.length > 0)) {
+                modalFriends = false;
+                alert("No hay amigos que mostrar")
+            }
+        }
+        this.setState({ modalFriends });
+    }
+
+    OnOpenProfile = (user) =>
+    {
+        let { currentFriend, modalProfile } = this.state;
+        currentFriend = user;
+        console.log("CURRENT USER: ", currentFriend)
+        this.setState({currentFriend, modalProfile: true})
+    }
+
+    OnCloseProfile = () =>
+    {
+        this.setState({modalProfile: false})
     }
 
     render() {
         const { auth, currentUser, OnChangeProfilePhoto, OnLogout } = this.props;
-        const { posts, loading, modalPhoto, dataModal, requestsVisible, requests, dataNumbers } = this.state;
+        const { currentFriend,posts, loading, modalPhoto, dataModal, modalRequest, modalFriends, modalProfile, requests, friends, dataNumbers } = this.state;
         return (
 
             <ScrollView>
                 <Content>
-                    <ProfileHeader dataNumbers={dataNumbers} currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnRequestsOpen={this.OnRequestsHandler} OnLogout={OnLogout} />
+                    <ProfileHeader dataNumbers={dataNumbers} currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnRequestsOpen={this.OnRequestsHandler} OnFriendsOpen={this.OnFriendsHandler} OnLogout={OnLogout} />
                 </Content>
                 {loading && <Spinner color="white" />}
                 <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
-                <ModalPhoto open={modalPhoto} OnCloseModal={this.OnCloseModal} dataModal={dataModal} />
-                <ModalRequests open={requestsVisible} data={requests} close_modal={this.OnRequestsHandler} requests={""} OnDeclinePress={this.OnDeclinePress} OnAcceptPress={this.OnAcceptRequest} />
+                <ModalPhoto open={modalPhoto} OnCloseModalPhoto={this.OnCloseModalPhoto} dataModal={dataModal} />
+                <ModalRequests open={modalRequest} data={requests} close_modal={this.OnRequestsHandler}  OnDeclinePress={this.OnDeclinePress} OnAcceptPress={this.OnAcceptRequest} />
+                <ModalFriends open={modalFriends} data={friends} close_modal={this.OnFriendsHandler} OnOpenProfile={(user) => this.OnOpenProfile(user)} />
+                <ModalProfile open={modalProfile} currentUser={currentFriend} close_modal={this.OnCloseProfile} auth={auth} />
             </ScrollView>
 
         )

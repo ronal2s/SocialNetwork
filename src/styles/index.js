@@ -133,6 +133,11 @@ export default StyleSheet.create({
         borderRadius: 10,
         padding: 22
     },
+    modalDark: {
+        backgroundColor: PRIMARY_COLOR,
+        borderRadius: 10,
+        padding: 0
+    },
     modalViewBottom: {
         backgroundColor: "white",
         padding: 22,
