@@ -6,7 +6,7 @@ import DefaultPhoto from "../../../assets/icons/user.png"
 import styles from "../../styles"
 
 const ListRequest = (props) => {
-    const { data, OnOpenProfile } = props;
+    const { data, OnOpenProfile, OnDeleteFriend } = props;
     let image = null;
     return (
         <List>
@@ -21,6 +21,11 @@ const ListRequest = (props) => {
                             <Text style={styles.textWhite} >
                                 {v.user}
                             </Text>
+                            <TouchableOpacity onPress={() => OnDeleteFriend(v)} >
+                                <Text style={{color: "red"}}>
+                                    Eliminar
+                                </Text>
+                            </TouchableOpacity>
                         </Body>
                     </ListItem>
                 )
@@ -31,7 +36,7 @@ const ListRequest = (props) => {
 
 class Friends extends Component {
     render() {
-        const { open, close_modal, data, OnOpenProfile } = this.props;
+        const { open, close_modal, data, OnOpenProfile, OnDeleteFriend } = this.props;
         return (
             <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight"
                 onBackButtonPress={close_modal} onBackdropPress={close_modal} >
@@ -40,7 +45,7 @@ class Friends extends Component {
                         <Text style={styles.textTitle}>
                             Amigos
                         </Text>
-                        <ListRequest OnOpenProfile={OnOpenProfile} data={data} />
+                        <ListRequest OnOpenProfile={OnOpenProfile} OnDeleteFriend={OnDeleteFriend} data={data} />
                     </ScrollView>
                     <Footer>
                         <FooterTab>
