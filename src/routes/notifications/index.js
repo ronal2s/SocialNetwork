@@ -13,7 +13,7 @@ const MainContent = (props) => {
             return data.map((v, i) => {
                 imageProfile = v.mainPhoto == "" ? DEFAULTPHOTO : { uri: v.mainPhoto }
                 return (
-                    <ListItem key={i} avatar>
+                    <ListItem key={i} avatar noBorder >
                         <Left>
                             <Thumbnail source={imageProfile} />
                         </Left>

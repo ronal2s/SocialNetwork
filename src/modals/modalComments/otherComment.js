@@ -22,24 +22,30 @@ class Preview extends PureComponent {
         let { auth, actualComment, post, currentUser } = this.props;
         let { description } = this.state;
         let ref = auth.app.database().ref(ROUTES.Comentarios).child(post.user).child(post.date)
-        this.setState({uploadingComment: true})
+        this.setState({ uploadingComment: true })
         ref.orderByChild("date").equalTo(actualComment.date).once("value", snapshot => {
             //Ya aqui me dan el comentario actual
             // let updates = {}
             let key = Object.keys(snapshot.val())[0]
-            let updates = {...snapshot.val()[key]}
-            updates.comments = updates.comments instanceof Array? updates.comments: []
-            updates.comments.push({...currentUser, comment: description})
-
-            
+            let updates = { ...snapshot.val()[key] }
+            updates.comments = updates.comments instanceof Array ? updates.comments : []
+            updates.comments.push({ ...currentUser, comment: description })
             ref.child(key).set(updates, err => {
-                if(err)
-                {
+                if (err) {
                     console.log(err);
                     alert("Ha ocurrido un error")
-                } else
-                {
-                    this.setState({uploadingComment: false}, () => this.props.OnCloseModal())
+                } else {
+                    //Enviarle una notificacion 
+                    let notific = { date: 0 - new Date(), msj: `${currentUser.user} ha comentado tu foto`, mainPhoto: post.photo }
+                    auth.app.database().ref(ROUTES.Notificaciones).child(post.user).push(notific, err => {
+                        if (!err) {
+                            
+                            this.setState({ uploadingComment: false }, () => this.props.OnCloseModal())
+                        } else {
+                            console.log(err);
+                            alert("Ha ocurrido un error");
+                        }
+                    })
                 }
             })
             // ref.child(key).push(updates, err => {
@@ -52,7 +58,7 @@ class Preview extends PureComponent {
             //     }
             // })
             // ref.set(updates)
-            
+
         })
 
     }
@@ -84,7 +90,7 @@ class Preview extends PureComponent {
                         </Body>
                     </ListItem>
                     <Form>
-                        <Textarea bordered value={description} placeholder="Respuesta" rowSpan={4} onChangeText={this.HandleDescription}/>
+                        <Textarea bordered value={description} placeholder="Respuesta" rowSpan={4} onChangeText={this.HandleDescription} />
                         {/* <Input placeholder="Responder comentario" onChangeText={this.HandleDescription} value={description} returnKeyType="send" onSubmitEditing={this.OnReplyComment} /> */}
                     </Form>
                     <Button block style={[styles.buttonPrimary, { marginTop: 5 }]} onPress={this.OnReplyComment} >

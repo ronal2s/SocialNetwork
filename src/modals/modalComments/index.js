@@ -116,8 +116,20 @@ class MyModal extends Component {
             let data = { user: currentUser.user, mainPhoto: currentUser.mainPhoto, comment: newComment, date: 0 - new Date() }
             auth.app.database().ref(ROUTES.Comentarios).child(post.user).child(post.date).push(data, err => {
                 if (!err) {
-                    this.setState({ newComment: "" })
+                    //Enviarle una notificacion 
+                    let notific = { date: 0 - new Date(), msj: `${currentUser.user} ha comentado tu foto`, mainPhoto: post.photo }
+                    auth.app.database().ref(ROUTES.Notificaciones).child(post.user).push(notific, err => {
+                        if(!err)
+                        {
+                            this.setState({ newComment: "" });
+                        } else
+                        {
+                            console.log(err);
+                            alert("Ha ocurrido un error");
+                        }
+                    })
                 } else {
+                    console.log(err)
                     alert("Ha ocurrido un error")
                 }
             })
