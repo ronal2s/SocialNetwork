@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
-import { StyleSheet, ScrollView } from 'react-native'
+import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { Text, Right, Left, Body, List, ListItem, Button, Thumbnail, Footer, FooterTab, Textarea, Form, Input, Spinner, Icon } from 'native-base'
 import Modal from 'react-native-modal'
+import ModalNewComment from "./otherComment"
 import styles from "../../styles"
 import { ROUTES, DEFAULTPHOTO } from '../../const';
 
 //Nuevas fotos
 const ModalContent = (props) => {
-    const { data, loading, currentUser, post, OnDeleteComment } = props;
+    const { data, loading, currentUser, post, OnDeleteComment, OnHandleAnswerComment } = props;
     let imageProfile = null;
     if (!loading) {
         if (data.length > 0) {
@@ -20,6 +21,11 @@ const ModalContent = (props) => {
                     <Body>
                         <Text style={styles.textWhite}>{`${v.user}`}</Text>
                         <Text note>{v.comment}</Text>
+                        <TouchableOpacity onPress={() => OnHandleAnswerComment(v)} >
+                            <Text style={{color: "gray"}}>
+                                Responder
+                            </Text>
+                        </TouchableOpacity>
                     </Body>
                     {(currentUser.user == v.user || currentUser.user == post.user) &&
                         <Right>
@@ -48,8 +54,9 @@ class MyModal extends Component {
 
     state =
         {
-            comments: [],
+            comments: [], actualComment: {},
             newComment: "",
+            modalNewComment:false,
             loading: true
         }
 
@@ -111,14 +118,23 @@ class MyModal extends Component {
         })
     }
 
+    OnHandleAnswerComment = (actualComment) =>
+    {
+        let { modalNewComment } = this.state;
+        modalNewComment = !modalNewComment;
+        this.setState({modalNewComment, actualComment})
+    }
+
+    CloseHandleAnswerComment = () => this.setState({modalNewComment: false});
+
     render() {
         const { open, close_modal, auth, post, currentUser } = this.props;
-        const { comments, newComment, loading } = this.state;
+        const { comments, newComment, loading, actualComment, modalNewComment } = this.state;
         return (
             <Modal isVisible={open} onModalShow={this.getData} animationIn="slideInLeft" animationOut="slideOutRight"
                 onBackButtonPress={close_modal} onBackdropPress={close_modal} style={[styles.modalDark, { margin: 0 }]} >
                 <ScrollView>
-                    <ModalContent data={comments} loading={loading} post={post} currentUser={currentUser} OnDeleteComment={this.OnDeleteComment}/>
+                    <ModalContent data={comments} loading={loading} post={post} currentUser={currentUser} OnDeleteComment={this.OnDeleteComment} OnHandleAnswerComment={this.OnHandleAnswerComment}/>
                 </ScrollView>
                 <Footer style={{ backgroundColor: "white" }} >
                     <Form style={{ width: "100%" }} >
@@ -135,6 +151,7 @@ class MyModal extends Component {
                         </Button>
                     </FooterTab>
                 </Footer>
+                <ModalNewComment currentUser={currentUser} auth={auth} open={modalNewComment} actualComment={actualComment} post={post} OnCloseModal={this.CloseHandleAnswerComment} />
             </Modal>
         )
     }

@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
-import { StyleSheet, View, Text } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'
 import { Container, Header, Left, Right, Body, Button, Icon, Title } from 'native-base'
 import styles from '../styles'
 class HeaderContainer extends Component {
     render() {
-        const { screen } = this.props;
+        const { screen, OnOpenChat } = this.props;
         return (
             <Header style={styles.header} noShadow>
                 <Left>
@@ -15,7 +15,11 @@ class HeaderContainer extends Component {
                         {screen}
                     </Title>
                 </Body>
-                <Right/>
+                <Right>
+                    <TouchableOpacity onPress={OnOpenChat}>
+                        <Icon name="comment" type="MaterialCommunityIcons" style={styles.textWhite} />
+                    </TouchableOpacity>
+                </Right>
             </Header>
         )
     }

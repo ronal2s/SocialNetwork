@@ -21,6 +21,7 @@ import NewsHome from '../routes/init';
 import Login from '../routes/login';
 import LoadingPage from '../routes/loading';
 import ModalPost from '../modals/modalPost';
+import ModalChat from '../modals/modalChat';
 import styles from '../styles'
 // import { isNullOrUndefined } from 'util';
 
@@ -61,6 +62,7 @@ class Main extends Component {
         isUploadingPhoto: false,
         loadingUser: false,
         open_modal: false,
+        open_chat: false,
         hasCameraPermission: "",
         cameraType: Camera.Constants.Type.front,
         isCameraOpen: false,
@@ -262,12 +264,19 @@ class Main extends Component {
         header: null
     }
 
+    OnOpenChat = () =>
+    {
+        let { open_chat } = this.state;
+        open_chat = !open_chat;
+        this.setState({open_chat})
+    }
+
 
     //Abrir un preview de la foto con la opcion de borrar y continuar, en un modal puede ser
 
     render() {
         const { screen, loading, open_modal, hasCameraPermission,
-            previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto } = this.state;
+            previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto, open_chat } = this.state;
         const { navigation, auth } = this.props;
         // console.log("USUARIO ES: ", currentUser)
         if (screen == SCREENS.Login) {
@@ -278,7 +287,7 @@ class Main extends Component {
         }
         return (
             <Container style={styles.main} >
-                <Header screen={screen}/>
+                <Header screen={screen} OnOpenChat={this.OnOpenChat} />
                 <StatusBar barStyle="light-content" backgroundColor="#232323" />
 
                 {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
@@ -286,6 +295,7 @@ class Main extends Component {
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
+                <ModalChat open={open_chat} />
                 {/* <Loading loading={true}/> */}
             </Container>
         )
