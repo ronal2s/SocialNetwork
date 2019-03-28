@@ -119,6 +119,7 @@ class Profile extends Component {
         let { dataNumbers } = this.state;
         auth.app.database().ref(ROUTES.Posts).child(currentUser.user).orderByChild("date").on("value", (snapshot) => {
             let dataFirebase = [];
+            console.log("DATA ORIGINAL: ", snapshot.val())
             //Convirtiendo la data a un array, proque me lo da en objetos {objeto1: {}, objeto2:{}}
             var newItem = null;
             snapshot.forEach(item => {

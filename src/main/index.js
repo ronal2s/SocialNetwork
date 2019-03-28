@@ -47,7 +47,7 @@ const Pages = (props) => {
     return <Container style={styles.main}>
         {screen == SCREENS.Registro && <Register />}
         {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} OnSendRequest={OnSendRequest} />}
-        {screen == SCREENS.Inicio && <NewsHome />}
+        {screen == SCREENS.Inicio && <NewsHome auth={auth} currentUser={currentUser} />}
         {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnLogout={OnLogout} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
     </Container>
     // }

@@ -2,7 +2,7 @@ import React, { PureComponent } from "react"
 import Modal from "react-native-modal"
 import { Image, StyleSheet } from "react-native"
 import { Button, View, Text, Item, Content, Form, Textarea, Spinner } from "native-base"
-import { POST, GetBlob } from "../../const"
+import { POST, GetBlob, ROUTES } from "../../const"
 import styles from "../../styles"
 const MaxChars = 200;
 class Preview extends PureComponent {
@@ -33,8 +33,9 @@ class Preview extends PureComponent {
         if (!uploadingPost) {
             GetBlob(imageURL.uri)
                 .then(async blob => {
-                    const refPhoto = auth.app.storage().ref("/POSTS").child(userPost);
-                    const refUser = auth.app.database().ref("/POSTS").child(currentUser.user).child(actualDate);
+                    const refPhoto = auth.app.storage().ref(ROUTES.Posts).child(userPost);
+                    // const refUser = auth.app.database().ref(ROUTES.Posts).child(currentUser.user).child(actualDate);
+                    const refUser = auth.app.database().ref(ROUTES.Posts).child(currentUser.user);
                     const snapshot = await refPhoto.put(blob);
                     blob.close();
                     snapshot.ref.getDownloadURL()
@@ -43,7 +44,7 @@ class Preview extends PureComponent {
                             post.user = currentUser.user;
                             post.date = actualDate;
                             post.description = description;
-                            refUser.set(post, (err) => {
+                            refUser.push(post, (err) => {
                                 if (!err) {                                    
                                     this.setState({ uploadingPost: false, description: "" }, () => {
                                         this.props.OnCloseModal();
