@@ -19,7 +19,8 @@ const ROUTES =
     Usuarios: "/USUARIOS",
     Solicitudes: "/SOLICITUDES",
     Amigos: "/AMIGOS",
-    MeGustas: "/MEGUSTAS"
+    MeGustas: "/MEGUSTAS",
+    Comentarios: "/COMENTARIOS"
 }
 
 
