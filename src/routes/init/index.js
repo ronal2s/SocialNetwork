@@ -30,7 +30,7 @@ const CardsPhotos = (props) => {
                         </Right>
                     </CardItem >
                     <CardItem cardBody style={{ backgroundColor: "#282828" }}>
-                        <Image source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }} />
+                        <Image progressiveRenderingEnabled source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }} />
                     </CardItem>
                     <CardItem style={{ backgroundColor: "#282828" }}>
                         <Text note>
@@ -41,10 +41,16 @@ const CardsPhotos = (props) => {
                         <Left>
                             <Button transparent>
                                 <Icon name="favorite-border" type="MaterialIcons" style={{ color: "gray" }} />
+                                <Text style={{color: "gray"}}>
+                                Me gusta
+                                </Text>
                                 {/* Validar si ESTE usuario le dio like o no */}
                             </Button>
                             <Button transparent onPress={() => OnOpenComments(v)} >
                                 <Icon name="comment" type="MaterialCommunityIcons" style={{ color: "gray" }} />
+                                <Text style={{color: "gray"}}>
+                                    Comentarios
+                                </Text>
                             </Button>
                         </Left>
                     </CardItem>

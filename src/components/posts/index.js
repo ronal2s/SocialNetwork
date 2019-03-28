@@ -19,16 +19,16 @@ const CardsPhotos = (props) => {
                     </Left>
                     <Right>
                         <Button transparent onPress={() => OnDeletePost(v.date)} >
-                            <Icon name="delete" style={{color: "gray"}} type="MaterialCommunityIcons" />
+                            <Icon name="delete" style={{ color: "gray" }} type="MaterialCommunityIcons" />
                         </Button>
                     </Right>
                 </CardItem >
                 <CardItem cardBody style={{ backgroundColor: "#282828" }}>
-                    <Image source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode:"stretch"}} 
-                    // loadingIndicatorSource={DefaultLoading}
-                    progressiveRenderingEnabled={true}
+                    <Image source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }}
+                        // loadingIndicatorSource={DefaultLoading}
+                        progressiveRenderingEnabled={true}
                     // loadingIndicatorSource={<Spinner color="white"/>}
-                    />                    
+                    />
                 </CardItem>
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Text note>
@@ -38,11 +38,16 @@ const CardsPhotos = (props) => {
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Left>
                         <Button transparent>
-                            <Icon name="heart-outline" type="MaterialCommunityIcons" style={{ color: "gray" }} />
-                            {/* Validar si ESTE usuario le dio like o no */}
+                            <Icon name="favorite-border" type="MaterialIcons" style={{ color: "gray" }} />
+                            <Text style={{ color: "gray" }}>
+                                Me gusta
+                                </Text>
                         </Button>
                         <Button transparent onPress={() => OnOpenComments(v)} >
                             <Icon name="comment" type="MaterialCommunityIcons" style={{ color: "gray" }} />
+                            <Text style={{ color: "gray" }}>
+                                Comentarios
+                                </Text>
                         </Button>
                     </Left>
                 </CardItem>
@@ -52,7 +57,8 @@ const CardsPhotos = (props) => {
 }
 
 
-class Posts extends Component {    
+
+class Posts extends Component {
 
     render() {
         const { data, OnDeletePost, OnOpenComments } = this.props;
