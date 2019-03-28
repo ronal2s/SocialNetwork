@@ -295,7 +295,7 @@ class Main extends Component {
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
-                <ModalChat open={open_chat} />
+                {/* <ModalChat open={open_chat} /> */}
                 {/* <Loading loading={true}/> */}
             </Container>
         )
