@@ -37,7 +37,7 @@ class Profile extends Component {
        } 
         else
         {
-            OnPressSolicitar = () => OnSendRequest(user.user);
+            OnPressSolicitar = () => OnSendRequest(user);
             buttonTitle = "Solicitar";
         }
         

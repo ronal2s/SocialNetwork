@@ -18,6 +18,7 @@ import Filtering from "../routes/filtering";
 import Profile from '../routes/profile';
 import Register from '../routes/register';
 import NewsHome from '../routes/init';
+import Notifications from '../routes/notifications';
 import Login from '../routes/login';
 import LoadingPage from '../routes/loading';
 import ModalPost from '../modals/modalPost';
@@ -42,12 +43,13 @@ const Loading = (props) => {
 }
 
 const Pages = (props) => {
-    const { screen, auth, currentUser, OnChangeProfilePhoto, OnSendRequest, OnLogout } = props;
+    const { screen, auth, currentUser, OnChangeProfilePhoto, OnLogout } = props;
     // if (screen != "Inicio") {
     // return <Container style={styles.main}>            
     return <Container style={styles.main}>
         {screen == SCREENS.Registro && <Register />}
-        {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} OnSendRequest={OnSendRequest} />}
+        {screen == SCREENS.Notificaciones && <Notifications auth={auth} currentUser={currentUser} />}
+        {screen == SCREENS.Buscar && <Filtering auth={auth} currentUser={currentUser} />}
         {screen == SCREENS.Inicio && <NewsHome auth={auth} currentUser={currentUser} />}
         {screen == SCREENS.Perfil && <Profile auth={auth} currentUser={currentUser} OnLogout={OnLogout} OnChangeProfilePhoto={OnChangeProfilePhoto} />}
     </Container>
@@ -192,36 +194,7 @@ class Main extends Component {
             })
     }
 
-    OnSendRequest = (user) =>
-    {
-        //El parámetro user es el usuario a enviar solicitud
-        let { currentUser } = this.state;
-        //Eliminar esta data porque no se lo mandaré en la solictud de amistad
-        delete currentUser.requests;
-        delete currentUser.messages;
-        
-        
-        //ANTES:
-        //La idea de esto es que las solicitudes se envíen en objetos así: {USUARIO: LOQUESEA}
-        //Y luego en el cliente cuando solicite las solicitudes de ese usuario sea Object.keys(snapshot.val())
-        //Y así tendré los nombres de esas solicitudes
-        this.auth.app.database().ref(ROUTES.Solicitudes).child(user).push(currentUser, (err => {
-            if(!err)
-            {
-                alert(`Solicitud enviada a ${user}`);
-                //Asignarle esa solicitud al usuario actual o cuando se cambie a la ventana perfil buscar las solicitudes en componentdidmount
-            } else
-            {
-                console.log(err)
-                alert("Ha ocurrido un error");
-            }
-            this.setState({screen: SCREENS.Inicio})
-        }));
-        //Para saber si ya la solicitud ha sido enviada, cuando se entre al perfil de alguien, 
-        //hacer un snapshot.exists() del currentUser de la tabla SOLICITUDES del usuario en cuestión
-
-    }
-
+    
 
     handlePages = (page) => {                
         this.setState({ screen: page, loading: false })
@@ -291,7 +264,7 @@ class Main extends Component {
                 <StatusBar barStyle="light-content" backgroundColor="#232323" />
 
                 {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
-                <Pages OnLogout={this.OnLogout} OnSendRequest={this.OnSendRequest} OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
+                <Pages OnLogout={this.OnLogout} OnChangeProfilePhoto={this.OnChangeProfilePhoto} open_modal={open_modal} screen={screen} auth={this.auth} currentUser={currentUser} />
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />

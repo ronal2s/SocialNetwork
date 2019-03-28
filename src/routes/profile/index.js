@@ -192,7 +192,17 @@ class Profile extends Component {
                                     if (err) {
                                         alert("Ha ocurrido un error ")
                                     } else {
-                                        this.GetMyRequests();
+                                        //Enviandole la notificacion
+                                        let notific = { date: 0 - new Date(), msj: `${currentUser.user} ha aceptado tu solicitud`, mainPhoto: currentUser.mainPhoto }
+                                        auth.app.database().ref(ROUTES.Notificaciones).child(user.user).push(notific, err => {
+                                            if (err) {
+                                                alert("Ha ocurrido un error");
+                                                console.log(err)
+                                            } else
+                                            {
+                                                this.GetMyRequests();
+                                            }
+                                        })
                                     }
                                 })
                             }
@@ -239,10 +249,10 @@ class Profile extends Component {
 
     OnDeleteFriend = async (user) => {
         let { currentUser, auth } = this.props;
-        
+
         let ref1 = auth.app.database().ref(`${ROUTES.Amigos}/${user.user}`)
         let ref2 = auth.app.database().ref(`${ROUTES.Amigos}/${currentUser.user}`)
-        
+
         ref1.orderByChild("user").equalTo(currentUser.user).once("value", snapshot => {
             if (snapshot.exists()) {
                 // snapshot.ref.remove(); //Eliminar el valor encontrado
@@ -382,16 +392,14 @@ class Profile extends Component {
         this.setState({ modalProfile: false })
     }
 
-    OnOpenComments = (post) =>
-    {
+    OnOpenComments = (post) => {
         let { actualPost } = this.state;
         actualPost = post;
-        this.setState({modalComments: true, actualPost})
+        this.setState({ modalComments: true, actualPost })
     }
 
-    OnCloseComments = () =>
-    {
-        this.setState({modalComments: false})
+    OnCloseComments = () => {
+        this.setState({ modalComments: false })
     }
 
     render() {

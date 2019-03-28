@@ -127,6 +127,29 @@ class Filtering extends Component {
         }
     }
 
+    OnSendRequest = (user) => {
+        //El parámetro user es el usuario a enviar solicitud
+        let { currentUser, auth } = this.props;
+        //Eliminar esta data porque no se lo mandaré en la solictud de amistad
+        delete currentUser.requests;
+        delete currentUser.messages;
+        auth.app.database().ref(ROUTES.Solicitudes).child(user.user).push(currentUser, (err => {
+            if (!err) {
+                let notific = { date: 0 - new Date(), msj: `${currentUser.user} te ha mandado una solicitud`, mainPhoto: currentUser.mainPhoto }
+                auth.app.database().ref(ROUTES.Notificaciones).child(user.user).push(notific, err => {
+                    if (err) {
+                        console.log(err)
+                        alert("Ha ocurrido un error")
+                    }
+                })
+            } else {
+                console.log(err)
+                alert("Ha ocurrido un error");
+            }
+            this.setState({ requestSent: true })
+        }));
+    }
+
     OnAcceptRequest = async () => {
         let { filterText } = this.state;
         let { auth, currentUser } = this.props;
@@ -154,8 +177,17 @@ class Filtering extends Component {
                                 if (err) {
                                     alert("Ha ocurrido un error ")
                                 } else {
-                                    // Ir a su perfil...
-                                    this.setState({isMyFriend: true}, () => this.OnOpenProfile(newItem))                                    
+                                    //Enviandole la notificacion
+                                    let notific = { date: 0 - new Date(), msj: `${currentUser.user} ha aceptado tu solicitud`, mainPhoto: currentUser.mainPhoto }
+                                    auth.app.database().ref(ROUTES.Notificaciones).child(filterText).push(notific, err => {
+                                        if (err) {
+                                            alert("Ha ocurrido un error");
+                                            console.log(err)
+                                        } else {
+                                            // Ir a su perfil...
+                                            this.setState({ isMyFriend: true }, () => this.OnOpenProfile(newItem));
+                                        }
+                                    })
                                 }
                             })
                         }
@@ -185,7 +217,7 @@ class Filtering extends Component {
     }
 
     render() {
-        const { auth, currentUser, OnSendRequest } = this.props;
+        const { auth, currentUser } = this.props;
         const { searchedUser, filterText, modalProfile, lastPosts, requestSent, isMyFriend, currentFriend, heSentMeRequest } = this.state;
         console.log(searchedUser)
         return (
@@ -198,7 +230,7 @@ class Filtering extends Component {
                             onChangeText={this.handleText} onSubmitEditing={this.OnSearchPress} />
                     </Item>
                 </Content>
-                {searchedUser && <Profile OnPressPerfil={(user) => this.OnOpenProfile(user)} OnAcceptRequest={this.OnAcceptRequest} OnSendRequest={OnSendRequest} currentUser={currentUser}
+                {searchedUser && <Profile OnPressPerfil={(user) => this.OnOpenProfile(user)} OnAcceptRequest={this.OnAcceptRequest} OnSendRequest={this.OnSendRequest} currentUser={currentUser}
                     user={searchedUser} lastPosts={lastPosts} heSentMeRequest={heSentMeRequest} requestSent={requestSent} isMyFriend={isMyFriend} />}
                 <NoContent searchedUser={searchedUser} />
                 <ModalProfile open={modalProfile} currentUser={currentFriend} close_modal={this.OnCloseProfile} auth={auth} />
