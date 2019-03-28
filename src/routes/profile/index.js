@@ -239,13 +239,26 @@ class Profile extends Component {
 
     OnDeleteFriend = async (user) => {
         let { currentUser, auth } = this.props;
-
-        auth.app.database().ref(`${ROUTES.Amigos}/${user.user}`).orderByChild("user").equalTo(currentUser.user).once("value", snapshot => {
+        
+        let ref1 = auth.app.database().ref(`${ROUTES.Amigos}/${user.user}`)
+        let ref2 = auth.app.database().ref(`${ROUTES.Amigos}/${currentUser.user}`)
+        
+        ref1.orderByChild("user").equalTo(currentUser.user).once("value", snapshot => {
             if (snapshot.exists()) {
-                snapshot.ref.remove(); //Eliminar el valor encontrado
-                auth.app.database().ref(`${ROUTES.Amigos}/${currentUser.user}`).orderByChild("user").equalTo(user.user).once("value", snapshot => {
+                // snapshot.ref.remove(); //Eliminar el valor encontrado
+                console.log("SNAPSHOT1: ", snapshot)
+                const updates = {}
+                snapshot.forEach(child => updates[child.key] = null);
+                console.log("UPDATES 1: ", updates);
+                ref1.update(updates);
+                ref2.orderByChild("user").equalTo(user.user).once("value", snapshot => {
                     if (snapshot.exists()) {
-                        snapshot.ref.remove();
+                        // snapshot.ref.remove();
+                        console.log("SNAPSHOT2: ", snapshot)
+                        const updates = {};
+                        snapshot.forEach(child => updates[child.key] = null); //child.key es lo que está dentro de equalTo
+                        ref2.update(updates);
+                        console.log("UPDATES 2: ", updates);
                         this.GetMyFriends();
                     }
                 })
@@ -316,7 +329,7 @@ class Profile extends Component {
         this.OnCloseModalPhoto();
         auth.app.database().ref(ROUTES.Posts).child(currentUser.user).child(date).remove(async err => {
             if (!err) {
-                await auth.app.storage().ref("/POSTS").child(`${currentUser.user}-${date}`).delete()
+                await auth.app.storage().ref(ROUTES.Posts).child(`${currentUser.user}-${date}`).delete()
                     .then(res => {
                         console.log("Post eliminado")
                     })
