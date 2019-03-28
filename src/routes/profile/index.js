@@ -8,6 +8,7 @@ import Posts from "../../components/posts";
 import ModalRequests from "../../modals/modalRequests"
 import ModalFriends from "../../modals/modalFriends"
 import ModalProfile from "../../modals/modalProfile"
+import ModalComments from "../../modals/modalComments"
 
 const ButtonProfile = (props) => {
     const { loading, text, dataKey, OnPressButton, data } = props;
@@ -103,8 +104,8 @@ class Profile extends Component {
             dataModal: { ...DATAMODAL },
             dataNumbers: { requestsNumber: 0, friendsNumber: 0, postsNumber: 0 },
             loading: true, loadingUserInfo: true,
-            modalPhoto: false, modalRequest: false, modalFriends: false, modalProfile: false,
-            currentFriend: null
+            modalPhoto: false, modalRequest: false, modalFriends: false, modalProfile: false, modalComments: false,
+            currentFriend: null, actualPost: null
         }
 
     async componentWillMount() {
@@ -368,9 +369,21 @@ class Profile extends Component {
         this.setState({ modalProfile: false })
     }
 
+    OnOpenComments = (post) =>
+    {
+        let { actualPost } = this.state;
+        actualPost = post;
+        this.setState({modalComments: true, actualPost})
+    }
+
+    OnCloseComments = () =>
+    {
+        this.setState({modalComments: false})
+    }
+
     render() {
         const { auth, currentUser, OnChangeProfilePhoto, OnLogout } = this.props;
-        const { currentFriend, posts, loading, loadingUserInfo, modalPhoto, dataModal, modalRequest, modalFriends, modalProfile, requests, friends, dataNumbers } = this.state;
+        const { currentFriend, posts, loading, loadingUserInfo, actualPost, modalPhoto, dataModal, modalRequest, modalComments, modalFriends, modalProfile, requests, friends, dataNumbers } = this.state;
         return (
 
             <ScrollView>
@@ -378,11 +391,12 @@ class Profile extends Component {
                     <ProfileHeader loadingUserInfo={loadingUserInfo} dataNumbers={dataNumbers} currentUser={currentUser} OnModalOpen={this.OnPressPhotoProfile} OnRequestsOpen={this.OnRequestsHandler} OnFriendsOpen={this.OnFriendsHandler} OnLogout={OnLogout} />
                 </Content>
                 {loading && <Spinner color="white" />}
-                <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} />
+                <Posts data={posts} OnDeletePost={this.OnDeletePostAlert} OnOpenComments={this.OnOpenComments} />
                 <ModalPhoto open={modalPhoto} OnCloseModalPhoto={this.OnCloseModalPhoto} dataModal={dataModal} />
                 <ModalRequests open={modalRequest} data={requests} close_modal={this.OnRequestsHandler} OnDeclinePress={this.OnDeclinePress} OnAcceptPress={this.OnAcceptRequest} />
                 <ModalFriends open={modalFriends} data={friends} close_modal={this.OnFriendsHandler} OnDeleteFriend={this.OnDeleteFriend} OnOpenProfile={(user) => this.OnOpenProfile(user)} />
                 <ModalProfile open={modalProfile} currentUser={currentFriend} close_modal={this.OnCloseProfile} auth={auth} />
+                <ModalComments open={modalComments} close_modal={this.OnCloseComments} auth={auth} post={actualPost} currentUser={currentUser} />
             </ScrollView >
 
         )

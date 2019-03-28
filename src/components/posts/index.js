@@ -4,7 +4,7 @@ import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner } from "
 import DefaultLoading from "../../../assets/loading2.gif"
 import { SCREEN_WIDTH } from "../../const"
 const CardsPhotos = (props) => {
-    const { data, OnDeletePost, currentUser } = props;
+    const { data, OnDeletePost, currentUser, OnOpenComments } = props;
     return data.map((v, i) => {
         return (
             <Card transparent key={i} >
@@ -38,10 +38,10 @@ const CardsPhotos = (props) => {
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Left>
                         <Button transparent>
-                            <Icon name="favorite-border" type="MaterialIcons" style={{ color: "gray" }} />
+                            <Icon name="heart-outline" type="MaterialCommunityIcons" style={{ color: "gray" }} />
                             {/* Validar si ESTE usuario le dio like o no */}
                         </Button>
-                        <Button transparent>
+                        <Button transparent onPress={() => OnOpenComments(v)} >
                             <Icon name="comment" type="MaterialCommunityIcons" style={{ color: "gray" }} />
                         </Button>
                     </Left>
@@ -55,10 +55,10 @@ const CardsPhotos = (props) => {
 class Posts extends Component {    
 
     render() {
-        const { data, OnDeletePost } = this.props;
+        const { data, OnDeletePost, OnOpenComments } = this.props;
         return (
             <ScrollView>
-                <CardsPhotos data={data} OnDeletePost={OnDeletePost} />
+                <CardsPhotos data={data} OnDeletePost={OnDeletePost} OnOpenComments={OnOpenComments} />
             </ScrollView>
         )
     }
