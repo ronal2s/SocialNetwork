@@ -78,17 +78,20 @@ class Employees extends Component {
                 //Ahora a buscar los posts de cada amigo
                 let postRef = auth.app.database().ref(ROUTES.Posts)                
                 Object.keys(myFriends).forEach((userKey, i) => {
-                    postRef.child(userKey).on("child_added", snapshot => {                        
+                    postRef.child(userKey).orderByChild("date").on("child_added", snapshot => {                        
                         posts.push(snapshot.val())                                                
+                        posts.sort((a, b) => new Date(b.date * -1) - new Date(a.date * -1))
                         this.setState({posts});
                         // snapshot.forEach(item => {
                             //     posts.push(item.val());
                             //     // this.setState({posts});
                             // })
                         })
+                        //Ordenar por fecha
                     })
                 }
                 this.setState({myFriends, loading: false})
+                console.log(posts)
         })
     }
 
