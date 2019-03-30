@@ -1,11 +1,14 @@
 import React, { Component } from "react";
-import { Image, ScrollView } from "react-native"
-import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner } from "native-base"
+import { Image, ScrollView, TouchableOpacity, Linking } from "react-native"
+import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner, View } from "native-base"
 import DefaultLoading from "../../../assets/loading2.gif"
 import { SCREEN_WIDTH } from "../../const"
+import styles from "../../styles";
 const CardsPhotos = (props) => {
-    const { data, OnDeletePost, currentUser, OnOpenComments } = props;
+    const { data, OnDeletePost, currentUser, OnOpenComments, OpenMap } = props;
+    let haveLocation = null;
     return data.map((v, i) => {
+        haveLocation = v.location != "" && v.location != undefined;
         return (
             <Card transparent key={i} >
                 <CardItem style={{ backgroundColor: "#282828" }}>
@@ -31,10 +34,18 @@ const CardsPhotos = (props) => {
                     />
                 </CardItem>
                 <CardItem style={{ backgroundColor: "#282828" }}>
-                    <Text note>
-                        {v.description}
-                    </Text>
-                </CardItem>
+                    <View>
+                        <Text note>
+                            {v.description}
+                        </Text>
+                        {haveLocation && <TouchableOpacity onPress={() => OpenMap(v.location)}>
+                            <Text style={styles.textWhite}>
+                                Mostrar ubicación
+                            </Text>
+                        </TouchableOpacity>}
+                      
+                    </View>
+                </CardItem>                
                 <CardItem style={{ backgroundColor: "#282828" }}>
                     <Left>
                         <Button transparent>
@@ -59,12 +70,21 @@ const CardsPhotos = (props) => {
 
 
 class Posts extends Component {
-
+    state =
+        {
+            showingMapView: false
+        }
+    OpenMap = (location) => {
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+        Linking.openURL(`http://maps.google.com/?q=${latitude},${longitude}`)
+    }
     render() {
         const { data, OnDeletePost, OnOpenComments } = this.props;
+        const { showingMapView } = this.state;
         return (
             <ScrollView>
-                <CardsPhotos data={data} OnDeletePost={OnDeletePost} OnOpenComments={OnOpenComments} />
+                <CardsPhotos data={data} OnDeletePost={OnDeletePost} OnOpenComments={OnOpenComments} showingMapView={showingMapView} OpenMap={this.OpenMap} />
             </ScrollView>
         )
     }

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Text, Spinner, Grid, Col, Row, Button, Content } from "native-base";
-import { ScrollView, Image, TouchableOpacity, View, Alert } from "react-native";
+import { ScrollView, Image, TouchableOpacity, View, Alert, Linking } from "react-native";
 import Modal from "react-native-modal";
 import { DEFAULTPHOTO, DATAMODAL, ROUTES } from "../../const";
 import styles from "../../styles";

@@ -1,7 +1,9 @@
 import React, { PureComponent } from "react"
 import Modal from "react-native-modal"
-import { Image, StyleSheet } from "react-native"
-import { Button, View, Text, Item, Content, Form, Textarea, Spinner } from "native-base"
+import { Image, StyleSheet, TouchableOpacity } from "react-native"
+import { Button, View, Text, Item, Content, Form, Textarea, Spinner, CheckBox, ListItem, Body } from "native-base"
+import { Constants, Location, Permissions } from 'expo';
+
 import { POST, GetBlob, ROUTES } from "../../const"
 import styles from "../../styles"
 const MaxChars = 200;
@@ -10,13 +12,46 @@ class Preview extends PureComponent {
         {
             post: { ...POST },
             description: "",
+            locationChecked: false,
+            loadingLocation: false,
             uploadingPost: false
         }
 
+    componentWillMount() {
+        // if (Platform.OS === 'android' && !Constants.isDevice) {
+        //     this.setState({
+        //         errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!',
+        //     });
+        // } else {
+        //     this._getLocationAsync();
+        // }
+    }
+
+
+    _getLocationAsync = async () => {
+        let { status } = await Permissions.askAsync(Permissions.LOCATION);
+        let { post } = this.state;
+        this.setState({loadingLocation: true})
+        if (status !== 'granted') {
+            this.setState({
+                errorMessage: 'Permission to access location was denied',
+            });
+        }
+        if (post.location == "") {
+            await Location.getCurrentPositionAsync({})
+                .then(result => {
+                    post.location = result;
+                    this.setState({ post, locationChecked: true, loadingLocation: false })
+                })
+        } else {
+            post.location = "";
+            this.setState({ post, locationChecked: false, loadingLocation: false });
+        }
+    };
+
     HandleDescription = (value: string) => {
         let { description } = this.state;
-        if(description.length < MaxChars)
-        {
+        if (description.length < MaxChars) {
             description = value;
             this.setState({ description })
         }
@@ -45,11 +80,11 @@ class Preview extends PureComponent {
                             post.date = actualDate;
                             post.description = description;
                             refUser.child(post.date).set(post, (err) => {
-                                if (!err) {                                    
+                                if (!err) {
                                     this.setState({ uploadingPost: false, description: "" }, () => {
                                         this.props.OnCloseModal();
                                     });
-                                    
+
                                 } else {
                                     console.log(err);
                                     alert("Ha ocurrido un error");
@@ -76,7 +111,8 @@ class Preview extends PureComponent {
 
     render() {
         const { open, imageURL, OnCloseModal, currentUser, auth } = this.props;
-        const { description, uploadingPost } = this.state;
+        const { description, uploadingPost, post, loadingLocation } = this.state;
+        console.log(post.location)
         return (
             <Modal isVisible={open} animationIn="slideInLeft" animationOut="slideOutRight" onBackButtonPress={OnCloseModal} swipeDirection="right" onSwipe={OnCloseModal}
                 onBackdropPress={OnCloseModal}>
@@ -89,11 +125,19 @@ class Preview extends PureComponent {
                     </Text>
                     <Form>
                         <Textarea bordered value={description} placeholder="Descripción" rowSpan={3} onChangeText={this.HandleDescription} />
+                        <ListItem noBorder>
+                            <CheckBox color="#232323" checked={post.location instanceof Object} onPress={this._getLocationAsync} />
+                            <Body>
+                                {loadingLocation ? <Text note>Cargando...</Text>:
+                                    <Text note>Compartir ubicación</Text>
+                                }
+                            </Body>
+                        </ListItem>
                     </Form>
                     {/* </Content> */}
                     <Button block style={[styles.buttonPrimary, { marginTop: 5 }]} onPress={this.OnPost} >
-                        {uploadingPost? <Spinner color="white" />:
-                        <Text style={styles.textWhite} >Aceptar</Text>
+                        {uploadingPost ? <Spinner color="white" /> :
+                            <Text style={styles.textWhite} >Aceptar</Text>
                         }
                     </Button>
                 </View>

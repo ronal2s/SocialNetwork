@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Image, StyleSheet, View, Animated } from 'react-native'
+import { Image, StyleSheet, View, Animated, Linking, TouchableOpacity } from 'react-native'
 import { DeckSwiper, Card, CardItem, Thumbnail, Text, Left, Right, Body, Button, Icon, Container, Spinner } from 'native-base'
 import ModalComments from "../../modals/modalComments";
 import styles from '../../styles'
@@ -9,11 +9,13 @@ import { ROUTES, DEFAULTPHOTO } from '../../const';
 const SCREEN_WIDTH = SCREEN_IMPORT.get('window').width;
 
 const CardsPhotos = (props) => {
-    const { data, myFriends, loading, OnOpenComments } = props;
+    const { data, myFriends, loading, OnOpenComments, OpenMap } = props;
     let imageProfile = null;
+    let haveLocation = null;
     if (!loading) {
         return data.map((v, i) => {
             imageProfile = myFriends[v.user].mainPhoto == "" ? DEFAULTPHOTO : { uri: myFriends[v.user].mainPhoto };
+            haveLocation = v.location != "" && v.location != undefined;
             return (
                 <Card transparent key={i} >
                     <CardItem style={{ backgroundColor: "#282828" }}>
@@ -33,9 +35,17 @@ const CardsPhotos = (props) => {
                         <Image progressiveRenderingEnabled source={{ uri: v.photo }} style={{ width: SCREEN_WIDTH, height: 300, resizeMode: "stretch" }} />
                     </CardItem>
                     <CardItem style={{ backgroundColor: "#282828" }}>
+                    <View>
                         <Text note>
                             {v.description}
                         </Text>
+                        {haveLocation && <TouchableOpacity onPress={() => OpenMap(v.location)}>
+                            <Text style={styles.textWhite}>
+                                Mostrar ubicación
+                            </Text>
+                        </TouchableOpacity>}
+                      
+                    </View>
                     </CardItem>
                     <CardItem style={{ backgroundColor: "#282828" }}>
                         <Left>
@@ -130,7 +140,11 @@ class Employees extends Component {
     {
         this.setState({commentsVisible: false})
     }
-
+    OpenMap = (location) => {
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+        Linking.openURL(`http://maps.google.com/?q=${latitude},${longitude}`)
+    }
     render() {
         const { loading, posts, actualPost, myFriends, commentsVisible } = this.state;
         const { open_modal, close_modal, navigation, handlePages,currentUser, auth } = this.props;
@@ -139,7 +153,7 @@ class Employees extends Component {
             <Animated.ScrollView
                 style={[{ transform: [{ translateX: this.state.x }], }, styles.DarkColorBackground]}>
 
-                <CardsPhotos data={posts} myFriends={myFriends} loading={loading} OnOpenComments={this.OnOpenComments} />
+                <CardsPhotos data={posts} myFriends={myFriends} loading={loading} OnOpenComments={this.OnOpenComments} OpenMap={this.OpenMap} />
                 <ModalComments open={commentsVisible} close_modal={this.OnCloseComments} auth={auth} post={actualPost} currentUser={currentUser} />
             </Animated.ScrollView>
         )

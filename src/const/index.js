@@ -75,6 +75,7 @@ const POST = {
     photo: "",
     description: "",
     date: "",//Fecha completa, es decir + new Date()
+    location:""
     // likes: 
     // [
     //     {usuario: ""}
