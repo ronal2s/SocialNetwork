@@ -89,6 +89,7 @@ class Employees extends Component {
         let { auth, currentUser } = this.props;
         let { posts, myFriends } = this.state;
         this.setState({ loading: true })
+        console.log("CURRENT USER: ", currentUser);
         auth.app.database().ref(ROUTES.Amigos).child(currentUser.user).once("value", snapshot => {
             if (snapshot.exists()) {
                 snapshot.forEach(item => {

@@ -3,13 +3,13 @@ import { StyleSheet, View, StatusBar, TouchableOpacity, CameraRoll, AsyncStorage
 import { Drawer, Content, Container, Spinner, Text, Button, Card, DeckSwiper, CardItem, Body, Left, Right, } from 'native-base';
 import Modal from "react-native-modal";
 import { createStackNavigator, createAppContainer } from 'react-navigation';
-import { Camera, Permissions, FileSystem, ImagePicker } from 'expo';
+import { Camera, Permissions, FileSystem, ImagePicker, Facebook } from 'expo';
 import app from "firebase/app";
 import _ from 'lodash';
 import "firebase/auth";
 import "firebase/database";
 import "firebase/storage";
-import { CONFIG, ROUTES, CURRENTUSER, SCREENS, POST, GetBlob } from "../const";
+import { CONFIG, ROUTES, CURRENTUSER, SCREENS, POST, FACEBOOK, GetBlob } from "../const";
 import Header from '../header';
 import SideBar from '../sidebar';
 import BottomNav from '../components/bottomnav';
@@ -23,6 +23,7 @@ import Login from '../routes/login';
 import LoadingPage from '../routes/loading';
 import ModalPost from '../modals/modalPost';
 import ModalChat from '../modals/modalChat';
+import ModalMessages from '../modals/modalMessages';
 import styles from '../styles'
 // import { isNullOrUndefined } from 'util';
 
@@ -33,14 +34,6 @@ console.warn = message => {
         _console.warn(message);
     }
 };
-const Loading = (props) => {
-    const { loading } = props;
-    return <Modal style={[styles.modal, { backgroundColor: "white" }]} isVisible={loading}>
-        <View style={{ flex: 1 }}>
-            <Spinner color="#0086c3" />
-        </View>
-    </Modal>
-}
 
 const Pages = (props) => {
     const { screen, auth, currentUser, OnChangeProfilePhoto, OnLogout } = props;
@@ -64,7 +57,7 @@ class Main extends Component {
         isUploadingPhoto: false,
         loadingUser: false,
         open_modal: false,
-        open_chat: false,
+        modalMessages: false,
         hasCameraPermission: "",
         cameraType: Camera.Constants.Type.front,
         isCameraOpen: false,
@@ -87,23 +80,32 @@ class Main extends Component {
         //VALIDAR SI LA SESION SIGUE ACTIVA 
         //EN VEZ DE ESTO HACER UNA PANTALLA INTERMEDIA 
         // console.log("FECHA ES: ", app.database.ServerValue.TIMESTAMP)
-        this.auth.onAuthStateChanged((user) => {
-            if (user) {
-                this.setState({ loadingUser: true })
-                //Obteniendo info del usuario actual
-                this.auth.app.database().ref(ROUTES.Usuarios).orderByChild("email").equalTo(user.email).on("value", (snapshot) => {
-                    if (snapshot.exists()) {
-                        const UserKey = Object.keys(snapshot.val())[0]
-                        // this.setState({ currentUser: snapshot.val()[UserKey] })
-                        let screen = this.state.screen == SCREENS.Cargando ? SCREENS.Inicio : this.state.screen;
-                        this.setState({ currentUser: snapshot.val()[UserKey], screen, loadingUser: false })
+        AsyncStorage.getItem("facebookToken", async (err, token) => {
+            console.log("Err: ", err)
+            if (!err) {
+                const response = await fetch(`${FACEBOOK.TOKEN}=${token}&fields=id,name,birthday,picture.type(large)`);
+                await response.json().then(async result => {
+                    console.log("Resultt: ", result)
+                    if (result.id) {
+                        const currentUser = {
+                            name: result.name,
+                            facebookId: result.id,
+                            facebookPhoto: result.picture.data.url,
+                            facebookToken: token
+                        }
+                        this.setState({ currentUser });
+                        this.handlePages(SCREENS.Inicio);
+                    } else {
+                        this.handlePages(SCREENS.Login);
                     }
-                })
+                });
             } else {
-                this.setState({ screen: SCREENS.Login, loadingUser: false })
+                this.handlePages(SCREENS.Login);
             }
-        })
+        });
     }
+
+
 
     OnChangeProfilePhoto = async () => {
         // await ImagePicker.launchCameraAsync({allowsEditing: true, aspect: [4, 3]})        
@@ -155,6 +157,7 @@ class Main extends Component {
     }
 
 
+    //OLD
     OnLogin = (email, password) => {
 
         this.setState({ loadingUser: true });
@@ -194,9 +197,9 @@ class Main extends Component {
             })
     }
 
-    
 
-    handlePages = (page) => {                
+
+    handlePages = (page) => {
         this.setState({ screen: page, loading: false })
     }
 
@@ -237,11 +240,10 @@ class Main extends Component {
         header: null
     }
 
-    OnOpenChat = () =>
-    {
-        let { open_chat } = this.state;
-        open_chat = !open_chat;
-        this.setState({open_chat})
+    OnOpenMessages = () => {
+        let { modalMessages } = this.state;
+        modalMessages = !modalMessages;
+        this.setState({ modalMessages })
     }
 
 
@@ -249,18 +251,18 @@ class Main extends Component {
 
     render() {
         const { screen, loading, open_modal, hasCameraPermission,
-            previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto, open_chat } = this.state;
+            previewVisible, newPhotoURL, photos, loadingUser, currentUser, isUploadingPhoto, modalMessages } = this.state;
         const { navigation, auth } = this.props;
         // console.log("USUARIO ES: ", currentUser)
         if (screen == SCREENS.Login) {
-            return <Login loadingUser={loadingUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth, StopLoading: this.StopLoading })} handlePages={this.handlePages} />
+            return <Login loadingUser={loadingUser} setUser={this.setUser} OnLogin={this.OnLogin} OnRegister={this.OnRegister} openRegister={() => navigation.navigate("Register", { OnRegister: this.OnRegister, auth: this.auth, StopLoading: this.StopLoading })} handlePages={this.handlePages} />
         }
         if (screen == SCREENS.Cargando) {
             return <LoadingPage />
         }
         return (
             <Container style={styles.main} >
-                <Header screen={screen} OnOpenChat={this.OnOpenChat} />
+                <Header screen={screen} OnOpenMessages={this.OnOpenMessages} />
                 <StatusBar barStyle="light-content" backgroundColor="#232323" />
 
                 {/* <Pages open_modal={open_modal} screen={screen} handlePages={this.handlePages} loading={loading} /> */}
@@ -268,7 +270,7 @@ class Main extends Component {
                 {/* <Home loading={loading} screen={screen} handlePages={this.handlePages} /> */}
                 <BottomNav page={screen} handlePages={this.handlePages} OnCameraOpen={this.OnCameraOpen} />
                 <ModalPost open={previewVisible} imageURL={newPhotoURL} currentUser={currentUser} auth={this.auth} OnCloseModal={this.OnCloseModal} />
-                {/* <ModalChat open={open_chat} /> */}
+                <ModalMessages open={modalMessages} close_modal={this.OnOpenMessages} auth={this.auth} currentUser={currentUser} />
                 {/* <Loading loading={true}/> */}
             </Container>
         )

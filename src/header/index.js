@@ -4,7 +4,7 @@ import { Container, Header, Left, Right, Body, Button, Icon, Title } from 'nativ
 import styles from '../styles'
 class HeaderContainer extends Component {
     render() {
-        const { screen, OnOpenChat } = this.props;
+        const { screen, OnOpenMessages } = this.props;
         return (
             <Header style={styles.header} noShadow>
                 <Left>
@@ -16,7 +16,7 @@ class HeaderContainer extends Component {
                     </Title>
                 </Body>
                 <Right>
-                    <TouchableOpacity onPress={OnOpenChat}>
+                    <TouchableOpacity onPress={OnOpenMessages}>
                         <Icon name="comment" type="MaterialCommunityIcons" style={styles.textWhite} />
                     </TouchableOpacity>
                 </Right>

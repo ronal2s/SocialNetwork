@@ -10,7 +10,10 @@ const CONFIG = {
     storageBucket: "socialnetwork-3b7a1.appspot.com",
     messagingSenderId: "643282533725"
 };
-
+const FACEBOOK = {
+    TOKEN: "https://graph.facebook.com/me?access_token",
+    API: "https://graph.facebook.com/v3.3"
+}
 const DEFAULTPHOTO = require("../../assets/icons/user.png")
 const DATAMODAL = { buttonText1: "", buttonText2: "", buttonText2Color: "", buttonText1Color: "", OnPressButton1: null, OnPressButton2: null };
 const ROUTES = 
@@ -21,7 +24,8 @@ const ROUTES =
     Amigos: "/AMIGOS",
     MeGustas: "/MEGUSTAS",
     Comentarios: "/COMENTARIOS",
-    Notificaciones: "/NOTIFICACIONES"
+    Notificaciones: "/NOTIFICACIONES",
+    Mensajes: "/MENSAJES"
 }
 
 
@@ -116,4 +120,4 @@ async function GetBlob(photo) {
 }
 
 
-export {SCREEN_WIDTH, ROUTES, CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }
+export {SCREEN_WIDTH, ROUTES, FACEBOOK, CONFIG, DEFAULTPHOTO, SCREENS, user, CURRENTUSER, POST, DATAMODAL, verifyEmail, GetBlob }

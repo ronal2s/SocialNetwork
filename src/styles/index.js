@@ -15,7 +15,7 @@ export default StyleSheet.create({
     loginContent: {
         backgroundColor: "white",
         width: '90%',
-        height: 450,
+        height: 250,
         borderRadius: 10,
         padding: 10
     },
