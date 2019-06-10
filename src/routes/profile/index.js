@@ -50,7 +50,7 @@ const ProfileHeader = (props) => {
                     </Row>
                     <Row>
                         <Col>
-                            <TouchableOpacity >
+                            <TouchableOpacity onPress={() => alert("No disponible en este demo")} >
                                 <Text style={styles.textWhite}>
                                     Editar perfil
                             </Text>

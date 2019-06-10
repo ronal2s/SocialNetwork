@@ -17,7 +17,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -31,7 +31,9 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.renysdelacruz.logonetwork"
+      "package": "com.renysdelacruz.socialnetwork",
+      "versionCode": 1,
+      "permissions" : [ "default" ]
     }
   }
 }

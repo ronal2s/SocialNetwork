@@ -5,15 +5,35 @@ import ModalComments from "../../modals/modalComments";
 import styles from '../../styles'
 import SCREEN_IMPORT from 'Dimensions'
 import { ROUTES, DEFAULTPHOTO } from '../../const';
+import NoPosts from "../../../assets/photo.png"
 
 const SCREEN_WIDTH = SCREEN_IMPORT.get('window').width;
+
+
+//Recordar hacer esto un componente
+const NoContent = (props) => {
+    const { searchedUser } = props;
+    if (!searchedUser) {
+        return (
+            <Container style={styles.containerCentered} >
+                <View >
+                    <Thumbnail square style={{width: 100, height: 100}} source={NoPosts} />
+                    <Text style={styles.textWhite} >
+                        Sin contenido
+                    </Text>
+                </View>
+            </Container>
+        )
+    }
+    return <Text />
+}
 
 const CardsPhotos = (props) => {
     const { data, myFriends, loading, OnOpenComments, OpenMap } = props;
     let imageProfile = null;
     let haveLocation = null;
     if (!loading) {
-        return data.map((v, i) => {
+        return data.length > 0? data.map((v, i) => {
             imageProfile = myFriends[v.user].mainPhoto == "" ? DEFAULTPHOTO : { uri: myFriends[v.user].mainPhoto };
             haveLocation = v.location != "" && v.location != undefined;
             return (
@@ -49,7 +69,7 @@ const CardsPhotos = (props) => {
                     </CardItem>
                     <CardItem style={{ backgroundColor: "#282828" }}>
                         <Left>
-                            <Button transparent>
+                            <Button transparent onPress={() => alert("No disponible en este demo")} >
                                 <Icon name="favorite-border" type="MaterialIcons" style={{ color: "gray" }} />
                                 <Text style={{color: "gray"}}>
                                 Me gusta
@@ -66,7 +86,7 @@ const CardsPhotos = (props) => {
                     </CardItem>
                 </Card>
             )
-        })
+        }): <NoContent/>
     }
     return <Spinner color="white" />
 }
@@ -89,7 +109,6 @@ class Employees extends Component {
         let { auth, currentUser } = this.props;
         let { posts, myFriends } = this.state;
         this.setState({ loading: true })
-        console.log("CURRENT USER: ", currentUser);
         auth.app.database().ref(ROUTES.Amigos).child(currentUser.user).once("value", snapshot => {
             if (snapshot.exists()) {
                 snapshot.forEach(item => {

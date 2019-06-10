@@ -135,7 +135,7 @@ class Preview extends PureComponent {
                         </ListItem>
                     </Form>
                     {/* </Content> */}
-                    <Button block style={[styles.buttonPrimary, { marginTop: 5 }]} onPress={this.OnPost} >
+                    <Button block style={[styles.buttonPrimary, { marginTop: 5 }]} disabled={uploadingPost} onPress={this.OnPost} >
                         {uploadingPost ? <Spinner color="white" /> :
                             <Text style={styles.textWhite} >Aceptar</Text>
                         }

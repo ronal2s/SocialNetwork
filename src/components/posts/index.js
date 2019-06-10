@@ -1,13 +1,33 @@
 import React, { Component } from "react";
 import { Image, ScrollView, TouchableOpacity, Linking } from "react-native"
-import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner, View } from "native-base"
-import DefaultLoading from "../../../assets/loading2.gif"
+import { Card, CardItem, Left, Right, Body, Text, Button, Icon, Spinner, View, Container, Thumbnail } from "native-base"
 import { SCREEN_WIDTH } from "../../const"
 import styles from "../../styles";
+import NoPosts from "../../../assets/photo.png"
+
+//Recordar hacer esto un componente
+const NoContent = (props) => {
+    const { searchedUser } = props;
+    if (!searchedUser) {
+        return (
+            <Container style={styles.containerCentered} >
+                <View >
+                    <Thumbnail square style={{width: 100, height: 100}} source={NoPosts} />
+                    <Text style={styles.textWhite} >
+                        Sin contenido
+                    </Text>
+                </View>
+            </Container>
+        )
+    }
+    return <Text />
+}
+
 const CardsPhotos = (props) => {
     const { data, OnDeletePost, currentUser, OnOpenComments, OpenMap } = props;
     let haveLocation = null;
-    return data.map((v, i) => {
+    
+    return data.length > 0? data.map((v, i) => {
         haveLocation = v.location != "" && v.location != undefined;
         return (
             <Card transparent key={i} >
@@ -64,7 +84,7 @@ const CardsPhotos = (props) => {
                 </CardItem>
             </Card>
         )
-    })
+    }): <NoContent/>
 }
 
 
