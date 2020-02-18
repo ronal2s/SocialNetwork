@@ -1,8 +1,8 @@
 {
-  "name": "socialnetwork",
+  "name": "LogoNetwork",
   "expo": {
-    "name": "socialnetwork",
-    "slug": "socialnetwork",
+    "name": "LogoNetwork",
+    "slug": "LogoNetwork",
     "privacy": "public",
     "androidStatusBar": {
       "backgroundColor": "#232323",
@@ -32,7 +32,7 @@
     },
     "android": {
       "package": "com.renysdelacruz.socialnetwork",
-      "versionCode": 1,
+      "versionCode": 3,
       "permissions" : [ "default" ]
     }
   }

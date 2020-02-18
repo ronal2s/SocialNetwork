@@ -80,12 +80,13 @@ export default StyleSheet.create({
         backgroundColor: '#232323',
         flex: 1,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",   
+        paddingHorizontal: 10
     },
     textBody: {
         color: "white",
         textAlign: "center",
-        fontSize: 25
+        fontSize: 20
     },
     textTitle: {
         // fontWeight: "bold", 

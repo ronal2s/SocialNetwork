@@ -16,12 +16,10 @@ const Page1 = (props) => {
     return <View style={styles.RegisterViews} >
         <Image source={IconBoy} style={styles.RegisterIconsSize} />
         <Text style={styles.textTitle}>
-            Lorem ipsum dolor sit amet
+            Conecta con tus amigos
     </Text>
         <Text style={styles.textBody}>
-            Consectetur adipiscing elit. Praesent eget odio non nibh tristique vehicula a et ex.
-            Etiam nec fringilla felis. Nam facilisis aliquam lectus. Integer vulputate varius pellentesque.
-            Vivamus tristique dictum erat sed dignissim.
+            Tú nombre no aparecerá en la búsqueda a menos que compartas exactamente tú nombre de usuario. Así mantenemos un ambiente privado con tus amigos cercanos 
     </Text>
     </View>
 }
@@ -30,12 +28,10 @@ const Page2 = () => {
     return <View style={styles.RegisterViews} >
         <Image source={IconWoman} style={styles.RegisterIconsSize} />
         <Text style={styles.textTitle}>
-            Lorem ipsum dolor sit amet
+            Publica tus fotos en el momento
     </Text>
         <Text style={styles.textBody}>
-            Consectetur adipiscing elit. Praesent eget odio non nibh tristique vehicula a et ex.
-            Etiam nec fringilla felis. Nam facilisis aliquam lectus. Integer vulputate varius pellentesque.
-            Vivamus tristique dictum erat sed dignissim.
+            Comparte únicamente los momentos que estás viviendo. No es posible compartir fotos de la galería, muéstrale a las personas tú realidad y comenta en los momentos de tus amigos.
     </Text>
     </View>
 }
@@ -45,12 +41,10 @@ const Page3 = () => {
     return <View style={styles.RegisterViews} >
         <Image source={IconSalon} style={styles.RegisterIconsSize} />
         <Text style={styles.textTitle}>
-            Lorem ipsum dolor sit amet
+            Bienvenido a LogoNetwork
     </Text>
         <Text style={styles.textBody}>
-            Consectetur adipiscing elit. Praesent eget odio non nibh tristique vehicula a et ex.
-            Etiam nec fringilla felis. Nam facilisis aliquam lectus. Integer vulputate varius pellentesque.
-            Vivamus tristique dictum erat sed dignissim.
+            Publica tus mejores momentos con tus amigos más cercanos, comenta, comparte, disfruta.
     </Text>
     </View>
 }
@@ -76,13 +70,13 @@ export class Page44 extends Component {
                     <Input keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputUsuario")} onChangeText={(text) => handleForm("email", text)} placeholder="Correo" autoCapitalize="none" />
                 </Item> */}
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")} onChangeText={(text) => handleForm("user", text)} placeholder="Usuario" autoCapitalize="none" />
+                    <Input ref="inputUsuario" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave")} onChangeText={(text) => handleForm("user", text)} value={form.user} placeholder="Usuario" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("pass1", text)} placeholder="Clave" autoCapitalize="none" />
+                    <Input ref="inputClave" returnKeyType="next" onSubmitEditing={() => this.NextInput("inputClave2")} secureTextEntry onChangeText={(text) => handleForm("pass1", text)} value={form.pass1} placeholder="Clave" autoCapitalize="none" />
                 </Item>
                 <Item rounded style={styles.RegisterItemsForm} >
-                    <Input ref="inputClave2" returnKeyType="next" onSubmitEditing={OnRegister} secureTextEntry onChangeText={(text) => handleForm("pass2", text)} placeholder="Confirmar clave" autoCapitalize="none" />
+                    <Input ref="inputClave2" returnKeyType="next" onSubmitEditing={OnRegister} secureTextEntry onChangeText={(text) => handleForm("pass2", text)} value={form.pass2} placeholder="Confirmar clave" autoCapitalize="none" />
                 </Item>
 
                 <Button style={[styles.RegisterItemsSpacing, styles.buttonPrimary]} rounded bordered block disabled={uploadingData} onPress={OnRegister} >
@@ -120,7 +114,7 @@ class Register extends Component {
             if (form.pass1.length >= 6) {
                 if (form.pass1 == form.pass2) {
                     //Todo validado
-
+                    
 
                     //VERIFICAR SI EL CORREO EXISTE
                     const refUsuario = auth.app.database().ref("/USUARIOS");
@@ -217,11 +211,18 @@ class Register extends Component {
 
 
 
-    handleForm = (name, text) => {
-        let { form } = this.state;
-        form[name] = text.toLowerCase();
-        console.log("FORMULARIO: ", form)
-        this.setState({ form })
+    handleForm = (name, value) => {
+        let { form } = this.state;        
+        if (value[value.length-1] != " ") {
+            if(value.search(/[`~,.<>;':"\/\[\]\|{}()=_+-]/) == -1)
+            {
+                form[name] = value.toLocaleLowerCase();
+                this.setState({ form })
+            }
+        }
+        // form[name] = text.toLowerCase();
+        // console.log("FORMULARIO: ", form)
+        // this.setState({ form })
     }
 
     GetCameraAccess = async () => {

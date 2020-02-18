@@ -13,8 +13,13 @@ class Main extends Component {
 
     handleText = (name, value: string) => {
         let { user } = this.state;
-        user[name] = value.toLocaleLowerCase();
-        this.setState({ user })
+        if (value[value.length-1] != " ") {
+            if(value.search(/[`~,.<>;':"\/\[\]\|{}()=_+-]/) == -1)
+            {
+                user[name] = value.toLocaleLowerCase();
+                this.setState({ user })
+            }
+        }
     }
 
     handleModal = (name) => {
@@ -34,10 +39,10 @@ class Main extends Component {
                     </View>
                     <Form >
                         <Item rounded bordered style={styles.loginFormItems} >
-                            <Input autoCapitalize="none" keyboardType="email-address" returnKeyType="next" onSubmitEditing={() => this.refs.inputClave._root.focus()} placeholder="Usuario" onChangeText={(text) => this.handleText("name", text)} />
+                            <Input autoCapitalize="none" keyboardType="default" returnKeyType="next" value={user.name} onSubmitEditing={() => this.refs.inputClave._root.focus()} placeholder="Usuario" onChangeText={(text) => this.handleText("name", text)} />
                         </Item>
                         <Item rounded bordered style={styles.loginFormItems}>
-                            <Input autoCapitalize="none" ref="inputClave" secureTextEntry placeholder="Contraseña" onChangeText={(text) => this.handleText("password", text)} />
+                            <Input autoCapitalize="none" ref="inputClave" secureTextEntry placeholder="Contraseña" value={user.password} onChangeText={(text) => this.handleText("password", text)} />
                         </Item>
                         <Button style={[styles.loginFormItems, styles.buttonPrimary]} rounded bordered block disabled={loadingUser} onPress={() => OnLogin(user.name, user.password)} >
                             {loadingUser ? <Spinner color="white" /> :
